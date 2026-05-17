@@ -6,8 +6,10 @@ import schedule
 import time
 
 from image_generator import generate_countdown_image
-from ig_publisher import upload_image_to_cloudinary, publish_to_instagram
+from ig_publisher import publish_to_instagram
 from discord_publisher import publish_to_discord
+from cloudinary_uploader import upload_image_to_cloudinary
+from fb_publisher import publish_to_facebook
 
 
 def job(args):
@@ -15,14 +17,10 @@ def job(args):
     exam_name = os.getenv("EXAM_NAME", "期末考")
     ig_account_id = os.getenv("IG_ACCOUNT_ID")
     ig_access_token = os.getenv("IG_ACCESS_TOKEN")
+    facebook_page_id = os.getenv("FACEBOOK_PAGE_ID")
+    facebook_access_token = os.getenv("FACEBOOK_ACCESS_TOKEN")
     discord_webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
     print("[Info] Countdown job started.")
-
-    if not args.dry_run and (not ig_account_id or not ig_access_token):
-        print(
-            "[Error] Instagram account ID or access token is not set. Please check your environment variables."
-        )
-        return
 
     # Calculate days
     today = datetime.now()
@@ -46,7 +44,7 @@ def job(args):
 
     print(f"[Info] 距離 {exam_name} 還有 {days_left} 天")
 
-    # 3. 產生圖片
+    # Generate countdown image
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     output_dir = os.path.join(BASE_DIR, "output")
     os.makedirs(output_dir, exist_ok=True)
@@ -75,19 +73,32 @@ def job(args):
         print(f"[Error] An error occurred while uploading image to Cloudinary: {e}")
         return
 
-    # Publish to Instagram
     caption = f"#{exam_name}倒數 {days_left} 天！大家準備好了嗎？ 📚✍️\n\n#倒數計時 #考試倒數 #考試加油 #{exam_name}"
-    print("[Info] Posting to Instagram...")
-    assert ig_account_id and ig_access_token
-    try:
-        publish_to_instagram(
-            ig_account_id=ig_account_id,
-            access_token=ig_access_token,
-            image_url=public_image_url,
-            caption=caption,
-        )
-    except Exception as e:
-        print(f"[Error] An error occurred while posting to Instagram: {e}")
+    # Publish to Instagram
+    if ig_account_id and ig_access_token:
+        print("[Info] Posting to Instagram...")
+        try:
+            publish_to_instagram(
+                ig_account_id=ig_account_id,
+                access_token=ig_access_token,
+                image_url=public_image_url,
+                caption=caption,
+            )
+        except Exception as e:
+            print(f"[Error] An error occurred while posting to Instagram: {e}")
+
+    # Publish to Facebook
+    if facebook_page_id and facebook_access_token:
+        print("[Info] Posting to Facebook...")
+        try:
+            publish_to_facebook(
+                page_id=facebook_page_id,
+                access_token=facebook_access_token,
+                image_url=public_image_url,
+                caption=caption,
+            )
+        except Exception as e:
+            print(f"[Error] An error occurred while posting to Facebook: {e}")
 
     # Publish to Discord
     if discord_webhook_url:

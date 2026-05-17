@@ -12,8 +12,8 @@ def publish_to_facebook(page_id: str, access_token: str, image_url: str, caption
     print("[Info] Creating Media Container...")
     url = f"{base_url}/{page_id}/photos"
     payload = {
-        'image_url': image_url,
-        'caption': caption,
+        'url': image_url,
+        'message': caption,
         'access_token': access_token
     }
     

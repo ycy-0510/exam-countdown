@@ -3,6 +3,9 @@ services:
     image: ghcr.io/ycy-0510/exam-countdown:latest
     container_name: exam-countdown
     restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Asia/Taipei
     env_file:
       - .env
     volumes:

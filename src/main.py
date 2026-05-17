@@ -63,9 +63,7 @@ def job(args):
     # Publish to Instagram
     caption = f"#{exam_name}倒數 {days_left} 天！大家準備好了嗎？ 📚✍️\n\n#倒數計時 #考試倒數 #考試加油 #{exam_name}"
     print("[Info] Posting to Instagram...")
-    if not ig_account_id or not ig_access_token:
-        print("[Error] IG account or access token is not set, cannot post to Instagram. Please check your environment variables.")
-        return
+    assert ig_account_id and ig_access_token
     try:
         publish_to_instagram(
             ig_account_id=ig_account_id,
@@ -77,11 +75,8 @@ def job(args):
         print(f"[Error] An error occurred while posting to Instagram: {e}")
 
     # Publish to Discord
-    try:
-        if discord_webhook_url:
-            publish_to_discord(discord_webhook_url, local_image_path, caption)
-    except Exception as e:
-        print(f"[Error] An error occurred while posting to Discord: {e}")
+    if discord_webhook_url:
+        publish_to_discord(discord_webhook_url, local_image_path, caption)
         
     if os.path.exists(local_image_path):
         os.remove(local_image_path)

@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   exam-countdown:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/ycy-0510/exam-countdown:latest
     container_name: exam-countdown
     restart: unless-stopped
     env_file:
       - .env
+    volumes:
+      - ./src/assets:/app/src/assets:ro

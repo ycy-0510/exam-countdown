@@ -31,7 +31,9 @@ def generate_countdown_image(
                 image = image.convert("RGB")
             image = image.resize((width, height), Image.Resampling.LANCZOS)
         except Exception as e:
-            print(f"[Warning] Can't load background image: {e}, using solid color background instead.")
+            print(
+                f"[Warning] Can't load background image: {e}, using solid color background instead."
+            )
             image = Image.new("RGB", (width, height), (40, 44, 52))
     else:
         image = Image.new("RGB", (width, height), (40, 44, 52))
@@ -52,20 +54,27 @@ def generate_countdown_image(
         days_font = ImageFont.load_default(size=250)
         date_font = ImageFont.load_default(size=50)
 
-
     days_text = f'D-{days_left if days_left>0 else "Day"}'
 
     day_text_x = width / 2
     day_text_y = height / 2 - 50
     draw.text(
-        (day_text_x, day_text_y), days_text, font=days_font, fill=(99, 201, 206), anchor="mm"
+        (day_text_x, day_text_y),
+        days_text,
+        font=days_font,
+        fill=(99, 201, 206),
+        anchor="mm",
     )
 
     date_text = datetime.date.today().strftime("%Y-%m-%d")
-    day_text_x=width-200
-    day_text_y=height-50
+    day_text_x = width - 200
+    day_text_y = height - 50
     draw.text(
-        (day_text_x, day_text_y), date_text, font=date_font, fill=(55, 56, 59), anchor="mm"
+        (day_text_x, day_text_y),
+        date_text,
+        font=date_font,
+        fill=(55, 56, 59),
+        anchor="mm",
     )
 
     # Conver color profile if source ICC profile exists
@@ -85,7 +94,7 @@ def generate_countdown_image(
 
 
 if __name__ == "__main__":
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     generate_countdown_image(
         0,
         os.path.join(BASE_DIR, "output", "test.jpg"),

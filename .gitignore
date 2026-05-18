@@ -13,3 +13,7 @@ wheels/
 .env
 
 src/output/
+
+#db
+data/*.db
+data/*.db-*

@@ -122,11 +122,20 @@ def main():
         action="store_true",
         help="Generate image but skip uploading and posting",
     )
+    parser.add_argument(
+        "--now",
+        action="store_true",
+        help="Run the job immediately without scheduling (for testing)",
+    )
     args = parser.parse_args()
     if args.dry_run:
         print(
             "[Info] Starting Dry run mode: Will only generate image, skipping upload and posting."
         )
+        job(args)
+        return
+    if args.now:
+        print("[Info] Running job immediately (no scheduling).")
         job(args)
         return
     schedule.every().day.at(schedule_time).do(job, args=args)

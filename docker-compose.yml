@@ -10,3 +10,4 @@ services:
       - .env
     volumes:
       - ./src/assets:/app/src/assets:ro
+      - ./data:/app/data

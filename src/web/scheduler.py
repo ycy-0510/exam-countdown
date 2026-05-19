@@ -19,7 +19,7 @@ _scheduler: BackgroundScheduler | None = None
 def _run_scheduled_job():
     config = load_config_from_db()
     log_id = create_run_log()
-    result = run_job(config, dry_run=False)
+    result = run_job(config, dry_run=False, run_log_id=log_id)
     finalize_run_log(log_id=log_id, result=result)
     print("[Info] Job result:", result)
 

@@ -1,8 +1,6 @@
 import argparse
 from dotenv import load_dotenv
-from core.job import run_job
 from web.db import init_db
-from web import scheduler
 import uvicorn
 
 

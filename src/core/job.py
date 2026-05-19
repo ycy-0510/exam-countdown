@@ -5,7 +5,7 @@ from datetime import datetime
 from .image_generator import generate_countdown_image
 from .ig_publisher import publish_to_instagram
 from .discord_publisher import publish_to_discord
-from .cloudinary_uploader import upload_image_to_cloudinary
+from .cloudinary_uploader import upload_image_to_cloudinary, delete_from_cloudinary
 from .fb_publisher import publish_to_facebook
 
 
@@ -29,20 +29,27 @@ class JobResult(TypedDict):
     error: Optional[str]
 
 
-def load_config_from_env() -> JobConfig:
-    config = JobConfig(
-        exam_date_time=os.getenv("EXAM_DATETIME") or os.getenv("EXAM_DATE", "2026-07-01"),
-        exam_name=os.getenv("EXAM_NAME", "期末考"),
-        instagram_account_id=os.getenv("IG_ACCOUNT_ID"),
-        instagram_access_token=os.getenv("IG_ACCESS_TOKEN"),
-        facebook_page_id=os.getenv("FACEBOOK_ID"),
-        facebook_access_token=os.getenv("FACEBOOK_ACCESS_TOKEN"),
-        discord_webhook_url=os.getenv("DISCORD_WEBHOOK_URL"),
-    )
-    return config
+def _cleanup_output_dir(output_dir: str, keep:int)->None:
+    try:
+        files = [
+            os.path.join(output_dir, f)
+            for f in os.listdir(output_dir)
+            if f.startswith("countdown_") and f.endswith(".jpg")
+        ]
+        files.sort(key=os.path.getmtime,reverse=True)
+        for old in files[keep:]:
+            try:
+                os.remove(old)
+            except OSError:
+                pass
+    except OSError as e:
+        print(f"[Warning] Failed to clean up old images in output directory: {e}")
 
 
-def run_job(config: JobConfig, dry_run: bool = False) -> JobResult:
+
+def run_job(
+    config: JobConfig, dry_run: bool = False, run_log_id: int | None = None
+) -> JobResult:
     exam_name = config["exam_name"]
     ig_account_id = config["instagram_account_id"]
     ig_access_token = config["instagram_access_token"]
@@ -77,7 +84,11 @@ def run_job(config: JobConfig, dry_run: bool = False) -> JobResult:
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     output_dir = os.path.join(BASE_DIR, "output")
     os.makedirs(output_dir, exist_ok=True)
-    local_image_path = os.path.join(output_dir, f"countdown_{days_left}.jpg")
+    if run_log_id is not None:
+        image_filename = f"countdown_{run_log_id}.jpg"
+    else:
+        image_filename = f"countdown_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+    local_image_path = os.path.join(output_dir, image_filename)
 
     try:
         generate_countdown_image(
@@ -98,6 +109,7 @@ def run_job(config: JobConfig, dry_run: bool = False) -> JobResult:
         )
 
     if dry_run:
+        _cleanup_output_dir(output_dir, keep=30)
         return JobResult(
             success=True,
             days_left=days_left,
@@ -110,7 +122,7 @@ def run_job(config: JobConfig, dry_run: bool = False) -> JobResult:
 
     # Upload image to Cloudinary to get a public URL for Instagram Graph API
     try:
-        public_image_url = upload_image_to_cloudinary(local_image_path)
+        public_image_url, public_id = upload_image_to_cloudinary(local_image_path)
     except Exception as e:
         return JobResult(
             success=False,
@@ -167,4 +179,6 @@ def run_job(config: JobConfig, dry_run: bool = False) -> JobResult:
             result["discord_status"] = "posted"
         except Exception as e:
             result["discord_status"] = f"error: {e}"
+    _cleanup_output_dir(output_dir, keep=30)
+    delete_from_cloudinary(public_id)
     return result

@@ -14,6 +14,7 @@
             <th>End</th>
             <th>Result</th>
             <th>Day Left</th>
+            <th>Image</th>
             <th>IG</th>
             <th>FB</th>
             <th>Discord</th>
@@ -28,6 +29,10 @@
             <td>{{ log.finished_at.strftime("%H:%M:%S") if log.finished_at else "(running)" }}</td>
             <td>{% if log.success %}✅{% else %}❌{% endif %}</td>
             <td>{{ log.days_left if log.days_left is not none else "-" }}</td>
+            <td>
+                {% set fname = log.image_path.split('/')[-1] %}
+                <a href="/content/{{ fname }}" target="_blank">View Image</a>
+            </td>
             <td
                 class="status-{{ 'posted' if log.ig_status == 'posted' else ('skipped' if log.ig_status == 'skipped' else 'error') }}">
                 {{ log.ig_status }}</td>

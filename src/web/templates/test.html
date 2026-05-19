@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Test | Exam Countdown{% endblock %}
+
+{% block content %}
+<h1>Test</h1>
+{% if result %}
+<p>{{ result }}</p>
+{% endif %}
+<form method="post" action="/test/dry-run">
+    <button type="submit">Dry Run</button>
+</form>
+<form method="post" action="/test/post-now"
+    onsubmit="return confirm(`Are you sure you want to post now? This will send notifications immediately.`);">
+    <button type="submit">Post Now</button>
+</form>
+{% endblock %}

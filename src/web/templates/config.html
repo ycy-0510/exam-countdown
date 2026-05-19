@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Configuration | Exam Countdown{% endblock %}
+
+{% block content %}
+<h1>Configuration</h1>
+<form method="post">
+    {% for field_name, field_label, field_type in fields %}
+    <div>
+        <label for="{{ field_name }}">{{ field_label }}</label>
+        <input type="{{ field_type }}" id="{{ field_name }}" name="{{ field_name }}"
+            value="{{ values.get(field_name, '') }}">
+    </div>
+    {% endfor %}
+    <p class="mt-10">
+        <button type="submit">Save</button>
+    </p>
+</form>
+{% endblock %}

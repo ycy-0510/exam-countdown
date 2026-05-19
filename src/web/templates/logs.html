@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %} Logs Explorer | Exam Countdown{% endblock %}
+
+{% block content %}
+<h1>Logs Explorer</h1>
+{% if not logs %}
+<p>No logs found.</p>
+{% else %}
+<p>Latest 50 logs:</p>
+<table>
+    <thead>
+        <tr>
+            <th>Start</th>
+            <th>End</th>
+            <th>Result</th>
+            <th>Day Left</th>
+            <th>IG</th>
+            <th>FB</th>
+            <th>Discord</th>
+            <th>Error</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+        <tr>
+            <td>{{ log.started_at.strftime("%Y-%m-%d %H:%M:%S") if log.started_at else "-" }}</td>
+            <td>{{ log.finished_at.strftime("%H:%M:%S") if log.finished_at else "(running)" }}</td>
+            <td>{% if log.success %}✅{% else %}❌{% endif %}</td>
+            <td>{{ log.days_left if log.days_left is not none else "-" }}</td>
+            <td
+                class="status-{{ 'posted' if log.ig_status == 'posted' else ('skipped' if log.ig_status == 'skipped' else 'error') }}">
+                {{ log.ig_status }}</td>
+            <td
+                class="status-{{ 'posted' if log.fb_status == 'posted' else ('skipped' if log.fb_status == 'skipped' else 'error') }}">
+                {{ log.fb_status }}</td>
+            <td
+                class="status-{{ 'posted' if log.discord_status == 'posted' else ('skipped' if log.discord_status == 'skipped' else 'error') }}">
+                {{ log.discord_status }}</td>
+            <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis;">{{ log.error or "" }}</td>
+        </tr>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

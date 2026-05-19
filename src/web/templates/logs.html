@@ -1,52 +1,95 @@
 {% extends "base.html" %}
-{% block title %} Logs Explorer | Exam Countdown{% endblock %}
+{% block title %}Logs | Exam Countdown{% endblock %}
+
+{% macro status_badge(value) %}
+{% if value == 'posted' %}
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">
+    posted
+</span>
+{% elif value == 'skipped' %}
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-zinc-500/10 text-zinc-400 ring-1 ring-zinc-500/20">
+    skipped
+</span>
+{% else %}
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20"
+    title="{{ value }}">
+    error
+</span>
+{% endif %}
+{% endmacro %}
 
 {% block content %}
-<h1>Logs Explorer</h1>
+<div class="mb-5">
+    <h1 class="text-xl font-semibold text-sky-400 tracking-tight">Run Logs</h1>
+    <p class="text-sm text-zinc-500 mt-0.5">Latest 50 job executions.</p>
+</div>
+
 {% if not logs %}
-<p>No logs found.</p>
+<div class="bg-zinc-900 rounded-lg border border-zinc-800 p-12 text-center">
+    <p class="text-sm text-zinc-500">No logs yet. Run a job from the Test page.</p>
+</div>
 {% else %}
-<p>Latest 50 logs:</p>
-<table>
-    <thead>
-        <tr>
-            <th>Start</th>
-            <th>End</th>
-            <th>Result</th>
-            <th>Day Left</th>
-            <th>Image</th>
-            <th>IG</th>
-            <th>FB</th>
-            <th>Discord</th>
-            <th>Error</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for log in logs %}
-        <tr>
-            <td>{{ log.started_at.strftime("%Y-%m-%d %H:%M:%S") if log.started_at else "-" }}</td>
-            <td>{{ log.finished_at.strftime("%H:%M:%S") if log.finished_at else "(running)" }}</td>
-            <td>{% if log.success %}✅{% else %}❌{% endif %}</td>
-            <td>{{ log.days_left if log.days_left is not none else "-" }}</td>
-            <td>
-                {% if log.image_path %}
-                    {% set fname = log.image_path.split('/')[-1] %}
-                    <a href="/content/{{ fname }}" target="_blank">View Image</a>
-                {% endif %}
-            </td>
-            <td
-                class="status-{{ 'posted' if log.ig_status == 'posted' else ('skipped' if log.ig_status == 'skipped' else 'error') }}">
-                {{ log.ig_status }}</td>
-            <td
-                class="status-{{ 'posted' if log.fb_status == 'posted' else ('skipped' if log.fb_status == 'skipped' else 'error') }}">
-                {{ log.fb_status }}</td>
-            <td
-                class="status-{{ 'posted' if log.discord_status == 'posted' else ('skipped' if log.discord_status == 'skipped' else 'error') }}">
-                {{ log.discord_status }}</td>
-            <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis;">{{ log.error or "" }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead>
+                <tr class="border-b border-zinc-800">
+                    <th class="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Start</th>
+                    <th class="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">End</th>
+                    <th class="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">OK</th>
+                    <th class="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Days</th>
+                    <th class="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Image</th>
+                    <th class="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">IG</th>
+                    <th class="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">FB</th>
+                    <th class="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Discord</th>
+                    <th class="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Error</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-800/60">
+                {% for log in logs %}
+                <tr class="hover:bg-zinc-800/30 transition">
+                    <td class="px-3 py-2 text-xs text-zinc-200 whitespace-nowrap font-mono">
+                        {{ log.started_at.strftime("%Y-%m-%d %H:%M:%S") if log.started_at else "-" }}
+                    </td>
+                    <td class="px-3 py-2 text-xs text-zinc-500 whitespace-nowrap font-mono">
+                        {% if log.finished_at %}
+                            {{ log.finished_at.strftime("%H:%M:%S") }}
+                        {% else %}
+                            <span class="text-amber-400">running…</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-2 text-sm">
+                        {% if log.success %}
+                        <span class="text-emerald-400">✓</span>
+                        {% else %}
+                        <span class="text-rose-400">✗</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-2 text-xs text-zinc-300 font-mono">
+                        {{ log.days_left if log.days_left is not none else "-" }}
+                    </td>
+                    <td class="px-3 py-2 text-xs">
+                        {% if log.image_path %}
+                            {% set fname = log.image_path.split('/')[-1] %}
+                            <a href="/content/{{ fname }}" target="_blank"
+                                class="text-sky-400 hover:text-sky-300 hover:underline">
+                                view ↗
+                            </a>
+                        {% else %}
+                            <span class="text-zinc-700">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-2">{{ status_badge(log.ig_status) }}</td>
+                    <td class="px-3 py-2">{{ status_badge(log.fb_status) }}</td>
+                    <td class="px-3 py-2">{{ status_badge(log.discord_status) }}</td>
+                    <td class="px-3 py-2 text-[11px] text-rose-400/80 max-w-[180px] truncate" title="{{ log.error or '' }}">
+                        {{ log.error or "" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endif %}
 {% endblock %}

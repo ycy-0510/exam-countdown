@@ -1,48 +1,118 @@
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import HTTPException
+from pydantic import BaseModel
 from ..app import templates
-from ..repository import get_all_configs, upsert_config_bulk, set_schedule_time_in_db
+from ..repository import (
+    get_all_configs,
+    set_schedule_time_in_db,
+    upsert_config,
+    upsert_config_bulk,
+    set_schedule_time_in_db,
+    set_platform_enabled,
+    PLATFORMS,
+)
 from .. import scheduler
+from core.ig_publisher import test_instagram
+from core.fb_publisher import test_facebook
+from core.discord_publisher import test_discord
 
 router = APIRouter(prefix="/config", tags=["config"])
 
-CONFIG_FIELDS = [
+GENERAL_FIELDS = [
     ("exam_name", "Exam Name", "text"),
     ("exam_date_time", "Exam Date Time", "text"),
-    ("schedule_time", "Daily Post Time (HH:MM)", "text"),
-    ("instagram_account_id", "IG Account ID", "text"),
-    ("instagram_access_token", "IG Access Token", "password"),
-    ("facebook_page_id", "Facebook Page ID", "text"),
-    ("facebook_access_token", "Facebook Access Token", "password"),
-    ("discord_webhook_url", "Discord Webhook URL", "text"),
+    ("schedule_time", "Schedule Time (HH:MM)", "text"),
 ]
+
+PLATFORM_FIELDS = {
+    "instagram": [
+        ("instagram_account_id", "Instagram Account ID", "text"),
+        ("instagram_access_token", "Instagram Access Token", "password"),
+    ],
+    "facebook": [
+        ("facebook_page_id", "Facebook Page ID", "text"),
+        ("facebook_access_token", "Facebook Access Token", "password"),
+    ],
+    "discord": [
+        ("discord_webhook_url", "Discord Webhook URL", "url"),
+    ],
+}
 
 
 @router.get("", response_class=HTMLResponse)
-async def show_config(request: Request, message: str | None = None):
+async def show_config(request: Request):
     values = get_all_configs()
+    platforms_state = [
+        {
+            "name": platform.capitalize(),
+            "key": platform,
+            "enabled": values.get(f"{platform}_enabled", "false") == "true",
+            "fields": PLATFORM_FIELDS[platform],
+            "configured": all(
+                values.get(field[0]) for field in PLATFORM_FIELDS[platform]
+            ),
+        }
+        for platform in PLATFORMS
+    ]
     return templates.TemplateResponse(
         request=request,
         name="config.html",
         context={
-            "fields": CONFIG_FIELDS,
+            "general_fields": GENERAL_FIELDS,
+            "platforms": platforms_state,
             "values": values,
-            "message": message,
         },
     )
 
-@router.post("")
-async def save_config(request: Request):
-    form = await request.form()
-    items = {key: str(form.get(key,"")) for key, _ ,_ in CONFIG_FIELDS}
+class FieldUpdate(BaseModel):
+    key: str
+    value: str
 
-    try:
-        set_schedule_time_in_db(items["schedule_time"])
-    except ValueError as e:
-        return RedirectResponse(url=f"/config?message=Invalid schedule time format: {e}", status_code=303)
-    
+
+@router.post("/field")
+async def update_field(payload: FieldUpdate):
+    if payload.key == "schedule_time":
+        try:
+            set_schedule_time_in_db(payload.value)
+            scheduler.apply_schedule_from_db()
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid schedule time format: {e}")
+    else:
+        upsert_config(payload.key, payload.value)
+    return {"ok": True}
+
+class PlatformUpdate(BaseModel):
+    fields: dict[str, str]
+
+@router.post("/platform/{platform}")
+async def update_platform(platform: str, payload: PlatformUpdate):
+    if platform not in PLATFORMS:
+        raise HTTPException(status_code=404, detail=f"Unknown platform: {platform}")
+    excepted_keys = {f[0] for f in PLATFORM_FIELDS[platform]}
+    items = {k:v for k,v in payload.fields.items() if k in excepted_keys}
     upsert_config_bulk(items)
-    scheduler.apply_schedule_from_db()
-    return RedirectResponse(url="/config?message=Configuration saved successfully", status_code=303)
+    return {"ok": True}
 
+class PlatformToggle(BaseModel):
+    enabled: bool
 
+@router.post("/platform/{platform}/toggle")
+async def toggle_platform(platform: str, payload: PlatformToggle):
+    if platform not in PLATFORMS:
+        raise HTTPException(status_code=404, detail=f"Unknown platform: {platform}")
+    set_platform_enabled(platform, payload.enabled)
+    return {"ok": True, "enabled": payload.enabled}
+
+@router.post("/test/{platform}")
+async def test_platform(platform: str,payload: PlatformUpdate):
+    f = payload.fields
+    if platform == "instagram":
+        ok, msg = test_instagram(f.get("instagram_account_id", ""), f.get("instagram_access_token", ""))
+    elif platform == "facebook":
+        ok, msg = test_facebook(f.get("facebook_page_id", ""), f.get("facebook_access_token", ""))
+    elif platform == "discord":
+        ok, msg = test_discord(f.get("discord_webhook_url", ""))
+    else:
+        raise HTTPException(status_code=404, detail=f"Unknown platform: {platform}")
+    return {"success": ok, "message": msg}

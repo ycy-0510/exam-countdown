@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from .db import init_db
 from . import scheduler
@@ -23,9 +24,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+STATIC_DIR = WEB_DIR / "static"
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+
 @app.get("/")
 async def root():
-    return RedirectResponse(url="/config")
+    return RedirectResponse(url="/config") 
 
 from .routes.config import router as config_router
 from .routes.logs import router as logs_router

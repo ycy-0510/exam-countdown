@@ -14,9 +14,13 @@ class JobConfig(TypedDict):
     exam_name: str
     instagram_account_id: str | None
     instagram_access_token: str | None
+    instagram_enabled: bool
     facebook_access_token: str | None
     facebook_page_id: str | None
+    facebook_enabled: bool
     discord_webhook_url: str | None
+    discord_enabled: bool
+
 
 
 class JobResult(TypedDict):
@@ -53,9 +57,12 @@ def run_job(
     exam_name = config["exam_name"]
     ig_account_id = config["instagram_account_id"]
     ig_access_token = config["instagram_access_token"]
+    ig_enabled = config["instagram_enabled"]
     facebook_page_id = config["facebook_page_id"]
     facebook_access_token = config["facebook_access_token"]
+    facebook_enabled = config["facebook_enabled"]
     discord_webhook_url = config["discord_webhook_url"]
+    discord_enabled = config["discord_enabled"]
 
     # Calculate days
     today = datetime.now()
@@ -145,7 +152,7 @@ def run_job(
     )
     caption = f"#{exam_name}倒數 {days_left} 天！大家準備好了嗎？ 📚✍️\n\n#倒數計時 #考試倒數 #考試加油 #{exam_name}"
     # Publish to Instagram
-    if ig_account_id and ig_access_token:
+    if  ig_enabled and ig_account_id and ig_access_token:
         print("[Info] Posting to Instagram...")
         try:
             publish_to_instagram(
@@ -159,7 +166,7 @@ def run_job(
             result["ig_status"] = f"error: {e}"
 
     # Publish to Facebook
-    if facebook_page_id and facebook_access_token:
+    if facebook_enabled and facebook_page_id and facebook_access_token:
         print("[Info] Posting to Facebook...")
         try:
             publish_to_facebook(
@@ -173,7 +180,7 @@ def run_job(
             result["fb_status"] = f"error: {e}"
 
     # Publish to Discord
-    if discord_webhook_url:
+    if discord_enabled and discord_webhook_url:
         try:
             publish_to_discord(discord_webhook_url, local_image_path, caption)
             result["discord_status"] = "posted"

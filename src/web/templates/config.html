@@ -2,34 +2,104 @@
 {% block title %}Configuration | Exam Countdown{% endblock %}
 
 {% block content %}
-<div class="mb-5">
+<div class="mb-6">
     <h1 class="text-xl font-semibold text-sky-400 tracking-tight">Configuration</h1>
-    <p class="text-sm text-zinc-500 mt-0.5">Saved to the database and applied immediately.</p>
+    <p class="text-sm text-zinc-500 mt-0.5">Click edit to change a value. Toggle platforms below to enable posting.</p>
 </div>
 
-<form method="post" class="bg-zinc-900 rounded-lg border border-zinc-800 p-5 space-y-4">
-    {% for field_name, field_label, field_type in fields %}
-    <div>
-        <label for="{{ field_name }}" class="block text-xs font-medium text-zinc-400 mb-1.5 uppercase tracking-wider">
-            {{ field_label }}
-            {% if field_type == 'password' %}
-            <span class="ml-1 text-zinc-600 normal-case font-normal">· hidden</span>
-            {% endif %}
-        </label>
-        <input type="{{ field_type }}" id="{{ field_name }}" name="{{ field_name }}"
-            value="{{ values.get(field_name, '') }}" autocomplete="off" class="block w-full rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm
-                   placeholder:text-zinc-600
-                   focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none
-                   transition">
+<!-- Inline edit -->
+<section class="bg-zinc-900 rounded-lg border border-zinc-800 mb-6 divide-y divide-zinc-800">
+    {% for key, label, type in general_fields %}
+    <div class="px-5 py-4 flex items-center gap-4" data-field-row data-key="{{ key }}">
+        <div class="flex-1 min-w-0">
+            <div class="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">{{ label }}</div>
+
+            <!-- View mode -->
+            <div class="text-sm text-zinc-100 font-mono" data-view>
+                {{ values.get(key, '') or '—' }}
+            </div>
+
+            <!-- Edit mode -->
+            <input type="{{ type }}" value="{{ values.get(key, '') }}" class="hidden block w-full rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm
+                       focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition"
+                data-edit>
+        </div>
+
+        <button type="button"
+            class="text-xs px-2.5 py-1 rounded-md bg-zinc-100/5 text-zinc-300 ring-1 ring-zinc-100/10 hover:bg-zinc-100/10 transition"
+            data-edit-btn>Edit</button>
+
+        <button type="button"
+            class="hidden text-xs px-2.5 py-1 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 transition"
+            data-save-btn>Save</button>
+
+        <button type="button" class="hidden text-xs px-2.5 py-1 rounded-md text-zinc-500 hover:text-zinc-300 transition"
+            data-cancel-btn>Cancel</button>
     </div>
     {% endfor %}
+</section>
 
-    <div class="pt-3 border-t border-zinc-800">
-        <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 text-sm font-medium
-                   hover:bg-sky-500/15 hover:text-sky-200 focus:outline-none focus:ring-2 focus:ring-sky-500/40
-                   transition">
-            Save Configuration
-        </button>
+<!-- card-platform -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+    {% for p in platforms %}
+    <div class="bg-zinc-900 rounded-lg border border-zinc-800 p-4 flex items-start gap-3
+                hover:border-zinc-700 cursor-pointer transition" data-platform-card data-platform="{{ p.key }}">
+        <div class="flex-1 min-w-0">
+            <div class="text-sm font-semibold text-zinc-100">{{ p.name }}</div>
+            <div class="text-xs text-zinc-500 mt-0.5">
+                {% if p.configured %}Configured{% else %}Not configured{% endif %}
+            </div>
+        </div>
+
+        <!-- Toggle switch -->
+        <label class="relative inline-flex items-center cursor-pointer shrink-0" onclick="event.stopPropagation()">
+            <input type="checkbox" class="sr-only peer" data-platform-toggle data-platform="{{ p.key }}" {% if p.enabled
+                %}checked{% endif %}>
+            <div class="w-9 h-5 bg-zinc-700 rounded-full peer-checked:bg-sky-500/60
+                        after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                        after:bg-white after:rounded-full after:h-4 after:w-4 after:transition
+                        peer-checked:after:translate-x-4"></div>
+        </label>
     </div>
-</form>
+    {% endfor %}
+</section>
+
+<!-- modal -->
+<dialog id="platform-modal"
+    class="bg-zinc-900 text-zinc-200 rounded-lg border border-zinc-800 p-0 backdrop:bg-black/60 backdrop:backdrop-blur-sm w-full max-w-md m-auto inset-0 ">
+    <div class="p-5 border-b border-zinc-800 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-sky-400" data-modal-title>—</h2>
+        <button type="button" class="text-zinc-500 hover:text-zinc-200" data-modal-close>✕</button>
+    </div>
+    <div class="p-5 space-y-4" data-modal-fields></div>
+    <div class="p-5 border-t border-zinc-800 flex items-center justify-between gap-3">
+        <button type="button"
+            class="text-xs px-2.5 py-1.5 rounded-md bg-zinc-100/5 text-zinc-300 ring-1 ring-zinc-100/10 hover:bg-zinc-100/10 transition"
+            data-modal-test>Test</button>
+        <div class="flex items-center gap-2">
+            <button type="button" class="text-xs px-2.5 py-1.5 rounded-md text-zinc-500 hover:text-zinc-300"
+                data-modal-close>Cancel</button>
+            <button type="button"
+                class="text-xs px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 transition"
+                data-modal-save>Save</button>
+        </div>
+    </div>
+    <div class="px-5 pb-5 text-xs hidden" data-modal-result></div>
+</dialog>
+
+<script id="platform-fields-data" type="application/json">
+{
+{% for p in platforms %}
+"{{ p.key }}": {
+    "name": "{{ p.name }}",
+    "fields": [{% for fk, fl, ft in p.fields %}{"key": "{{ fk }}", "label": "{{ fl }}", "type": "{{ ft }}"}{% if not loop.last %},{% endif %}{% endfor %}],
+    "values": {
+        {% for fk, fl, ft in p.fields %}"{{ fk }}": {{ (values.get(fk) or '')|tojson }}{% if not loop.last %},{% endif %}{% endfor %}
+    }
+}{% if not loop.last %},{% endif %}
+{% endfor %}
+}
+</script>
+
+<script src="/static/config.js"></script>
 {% endblock %}

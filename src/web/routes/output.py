@@ -22,4 +22,7 @@ async def get_content(filename: str):
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid filename")
 
+    if not target.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    
     return FileResponse(path=target, media_type="image/jpeg")

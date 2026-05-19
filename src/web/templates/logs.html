@@ -24,14 +24,15 @@
     <tbody>
         {% for log in logs %}
         <tr>
-        <tr>
             <td>{{ log.started_at.strftime("%Y-%m-%d %H:%M:%S") if log.started_at else "-" }}</td>
             <td>{{ log.finished_at.strftime("%H:%M:%S") if log.finished_at else "(running)" }}</td>
             <td>{% if log.success %}✅{% else %}❌{% endif %}</td>
             <td>{{ log.days_left if log.days_left is not none else "-" }}</td>
             <td>
-                {% set fname = log.image_path.split('/')[-1] %}
-                <a href="/content/{{ fname }}" target="_blank">View Image</a>
+                {% if log.image_path %}
+                    {% set fname = log.image_path.split('/')[-1] %}
+                    <a href="/content/{{ fname }}" target="_blank">View Image</a>
+                {% endif %}
             </td>
             <td
                 class="status-{{ 'posted' if log.ig_status == 'posted' else ('skipped' if log.ig_status == 'skipped' else 'error') }}">
@@ -43,7 +44,6 @@
                 class="status-{{ 'posted' if log.discord_status == 'posted' else ('skipped' if log.discord_status == 'skipped' else 'error') }}">
                 {{ log.discord_status }}</td>
             <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis;">{{ log.error or "" }}</td>
-        </tr>
         </tr>
         {% endfor %}
     </tbody>

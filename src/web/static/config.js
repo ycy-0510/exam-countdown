@@ -86,7 +86,14 @@ function openModal(platform) {
                        focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition" />
         </div>
     `).join('');
-    modalResult.classList.add('hidden');
+    modalFields.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', () => {
+            modalSave.disabled = true;
+            showResult(null, 'Test required before saving', null);
+        })
+    })
+    showResult(null, 'Test required before saving', null);
+    modalSave.disabled = true;
     modal.showModal();
 }
 
@@ -96,10 +103,34 @@ function collectFields() {
     return fields;
 }
 
-function showResult(ok, msg) {
-    modalResult.classList.remove('hidden', 'text-emerald-400', 'text-rose-400');
-    modalResult.classList.add(ok ? 'text-emerald-400' : 'text-rose-400');
-    modalResult.textContent = msg;
+function showResult(success, summary, detail) {
+    modalResult.classList.remove('hidden');
+    modalResult.innerHTML = '';
+
+    const color = success === true ? 'text-emerald-400' : success === false ? 'text-rose-400' : 'text-zinc-400';
+    const icon = success === true ? '✓' : success === false ? '✗' : '';
+
+    const line = document.createElement('div');
+    line.className = `${color} font-medium text-sm`;
+    line.textContent = `${icon} ${summary}`;
+    modalResult.appendChild(line);
+
+    if (detail) {
+        const details = document.createElement('details');
+        details.className = 'mt-2';
+
+        const summaryEl = document.createElement('summary');
+        summaryEl.textContent = 'Show details';
+        summaryEl.className = 'cursor-pointer text-[11px] text-zinc-500 hover:text-zinc-300 select-none';
+        details.appendChild(summaryEl);
+
+        const pre = document.createElement('pre');
+        pre.textContent = detail;
+        pre.className = 'mt-2 p-2 bg-zinc-950 rounded text-[10px] text-zinc-400 overflow-x-auto whitespace-pre-wrap break-all border border-zinc-800 font-mono';
+        details.appendChild(pre);
+
+        modalResult.appendChild(details);
+    }
 }
 
 modalSave.addEventListener('click', async () => {
@@ -111,19 +142,22 @@ modalSave.addEventListener('click', async () => {
     if (res.ok) {
         location.reload();
     } else {
-        showResult(false, 'Save failed');
+        showResult(false, 'Save failed', null);
     }
 });
 
 modalTest.addEventListener('click', async () => {
-    showResult(true, 'Testing…');
+    showResult(null, 'Testing…', null);
+    modalTest.disabled = true;
     const res = await fetch(`/config/test/${currentPlatform}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: collectFields() }),
     });
     const data = await res.json();
-    showResult(data.ok, data.message);
+    showResult(data.success, data.summary, data.detail);
+    modalSave.disabled = !data.success;
+    modalTest.disabled = false;
 });
 
 document.querySelectorAll('[data-platform-card]').forEach(card => {

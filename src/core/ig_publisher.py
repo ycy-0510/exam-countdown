@@ -48,7 +48,9 @@ def publish_to_instagram(
     return post_id
 
 
-def test_instagram(ig_account_id: str, access_token: str):
+def test_instagram(
+    ig_account_id: str, access_token: str
+) -> tuple[bool, str, str | None]:
     """
     Test function to verify Instagram credentials by fetching the account's media.
     """
@@ -58,11 +60,17 @@ def test_instagram(ig_account_id: str, access_token: str):
         url = f"{base_url}/{ig_account_id}"
 
         res = requests.get(
-            url, params={"fields": "id,username", "access_token": access_token}, timeout=10
+            url,
+            params={"fields": "id,username", "access_token": access_token},
+            timeout=10,
         )
         if res.status_code == 200:
             data = res.json()
-            return True, f"Instagram credentials are valid. Account ID: {data.get('id')}, Username: {data.get('username')}"
-        return False, f"Failed to validate Instagram credentials: {res.text}"
+            return (
+                True,
+                f"Connected as @{data.get('username')} (ID: {data.get('id')})",
+                None,
+            )
+        return False, "Failed to validate Instagram credentials", res.text
     except Exception as e:
-        return False, f"An error occurred while validating Instagram credentials: {e}"
+        return False, "An error occurred while validating Instagram credentials", str(e)

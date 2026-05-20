@@ -27,7 +27,7 @@ def publish_to_facebook(page_id: str, access_token: str, image_url: str, caption
     return post_id
 
 
-def test_facebook(page_id: str, access_token: str):
+def test_facebook(page_id: str, access_token: str) -> tuple[bool, str, str | None]:
     """
     Test function to verify Facebook credentials by fetching the page's information.
     """
@@ -41,7 +41,11 @@ def test_facebook(page_id: str, access_token: str):
         )
         if res.status_code == 200:
             data = res.json()
-            return True, f"Facebook credentials are valid. Page ID: {data.get('id')}, Name: {data.get('name')}"
-        return False, f"Failed to validate Facebook credentials: {res.text}"
+            return (
+                True,
+                f"Connected as @{data.get('name')} (ID: {data.get('id')})",
+                None,
+            )
+        return False, "Failed to validate Facebook credentials", res.text
     except Exception as e:
-        return False, f"An error occurred while validating Facebook credentials: {e}"
+        return False, "An error occurred while validating Facebook credentials", str(e)

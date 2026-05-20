@@ -1,3 +1,5 @@
+import time
+
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi import HTTPException
@@ -5,7 +7,6 @@ from pydantic import BaseModel
 from ..app import templates
 from ..repository import (
     get_all_configs,
-    set_schedule_time_in_db,
     upsert_config,
     upsert_config_bulk,
     set_schedule_time_in_db,
@@ -62,6 +63,7 @@ async def show_config(request: Request):
             "general_fields": GENERAL_FIELDS,
             "platforms": platforms_state,
             "values": values,
+            "now": int(time.time()),
         },
     )
 
@@ -89,8 +91,8 @@ class PlatformUpdate(BaseModel):
 async def update_platform(platform: str, payload: PlatformUpdate):
     if platform not in PLATFORMS:
         raise HTTPException(status_code=404, detail=f"Unknown platform: {platform}")
-    excepted_keys = {f[0] for f in PLATFORM_FIELDS[platform]}
-    items = {k: v.strip() for k, v in payload.fields.items() if k in excepted_keys}
+    expected_keys = {f[0] for f in PLATFORM_FIELDS[platform]}
+    items = {k: v.strip() for k, v in payload.fields.items() if k in expected_keys}
     upsert_config_bulk(items)
     # If any required field is now empty, force-disable to avoid silent skips
     if any(not v for v in items.values()):
@@ -120,11 +122,11 @@ async def toggle_platform(platform: str, payload: PlatformToggle):
 async def test_platform(platform: str,payload: PlatformUpdate):
     f = payload.fields
     if platform == "instagram":
-        ok, msg = test_instagram(f.get("instagram_account_id", ""), f.get("instagram_access_token", ""))
+        ok, summary, detail = test_instagram(f.get("instagram_account_id", ""), f.get("instagram_access_token", ""))
     elif platform == "facebook":
-        ok, msg = test_facebook(f.get("facebook_page_id", ""), f.get("facebook_access_token", ""))
+        ok, summary, detail = test_facebook(f.get("facebook_page_id", ""), f.get("facebook_access_token", ""))
     elif platform == "discord":
-        ok, msg = test_discord(f.get("discord_webhook_url", ""))
+        ok, summary, detail = test_discord(f.get("discord_webhook_url", ""))
     else:
         raise HTTPException(status_code=404, detail=f"Unknown platform: {platform}")
-    return {"success": ok, "message": msg}
+    return {"success": ok, "summary": summary, "detail": detail}

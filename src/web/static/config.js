@@ -66,6 +66,7 @@ document.querySelectorAll('[data-platform-toggle]').forEach(toggle => {
 //  Modal
 const modal = document.getElementById('platform-modal');
 const modalTitle = modal.querySelector('[data-modal-title]');
+const modalIcon = modal.querySelector('[data-modal-icon]');
 const modalFields = modal.querySelector('[data-modal-fields]');
 const modalResult = modal.querySelector('[data-modal-result]');
 const modalSave = modal.querySelector('[data-modal-save]');
@@ -79,6 +80,7 @@ function openModal(platform) {
     currentPlatform = platform;
     const data = platformsData[platform];
     modalTitle.textContent = data.name;
+    modalIcon.className = `fa-brands fa-${platform} text-lg text-sky-400`;
     modalFields.innerHTML = data.fields.map(f => `
         <div>
             <label class="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1.5">${f.label}</label>
@@ -109,7 +111,7 @@ function showResult(success, summary, detail) {
     modalResult.innerHTML = '';
 
     const color = success === true ? 'text-emerald-400' : success === false ? 'text-rose-400' : 'text-zinc-400';
-    const icon = success === true ? '✓' : success === false ? '✗' : '';
+    const icon = success === true ? '<i class="fa-solid fa-circle-check text-emerald-400"></i>' : success === false ? '<i class="fa-solid fa-circle-xmark text-rose-400"></i>' : '';
 
     const line = document.createElement('div');
     line.className = `${color} font-medium text-sm`;

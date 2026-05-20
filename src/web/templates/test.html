@@ -4,25 +4,25 @@
 {% block content %}
 <div class="mb-5">
     <h1 class="text-xl font-semibold text-sky-400 tracking-tight">Test</h1>
-    <p class="text-sm text-zinc-500 mt-0.5">Manually trigger the countdown job.</p>
+    <p class="text-sm text-zinc-400 mt-0.5">Manually trigger the countdown job.</p>
 </div>
 
 {% if result %}
 <div class="mb-5 bg-zinc-900 rounded-lg border border-zinc-800 p-4">
-    <div class="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Last result</div>
-    <pre class="text-xs text-zinc-300 bg-zinc-950 rounded-md p-3 overflow-x-auto whitespace-pre-wrap break-all border border-zinc-800 font-mono leading-relaxed">{{ result }}</pre>
+    <div class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">Last result</div>
+    <pre
+        class="text-xs text-zinc-300 bg-zinc-950 rounded-md p-3 overflow-x-auto whitespace-pre-wrap break-all border border-zinc-800 font-mono leading-relaxed">{{ result }}</pre>
 </div>
 {% endif %}
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
     <div class="bg-zinc-900 rounded-lg border border-zinc-800 p-5">
         <h2 class="text-sm font-semibold text-sky-300 mb-1">Dry Run</h2>
-        <p class="text-xs text-zinc-500 mb-4 leading-relaxed">
+        <p class="text-xs text-zinc-400 mb-4 leading-relaxed">
             Generate image only. No Cloudinary upload, no posting. Safe to run repeatedly.
         </p>
         <form method="post" action="/test/dry-run">
-            <button type="submit"
-                class="inline-flex items-center px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 text-sm font-medium
+            <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 text-sm font-medium
                        hover:bg-sky-500/15 hover:text-sky-200 focus:outline-none focus:ring-2 focus:ring-sky-500/40
                        transition">
                 Run Dry Run
@@ -31,14 +31,15 @@
     </div>
 
     <div class="bg-zinc-900 rounded-lg border border-rose-500/20 p-5">
-        <h2 class="text-sm font-semibold text-rose-300 mb-1">Post Now</h2>
-        <p class="text-xs text-zinc-500 mb-4 leading-relaxed">
-            Upload to Cloudinary and post to Instagram, Facebook, Discord. <span class="text-rose-400">This is a real post.</span>
+        <h2 class="text-sm font-semibold text-rose-300 mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Post Now
+        </h2>
+        <p class="text-xs text-zinc-400 mb-4 leading-relaxed">
+            Upload to Cloudinary and post to Instagram, Facebook, Discord. <span class="text-rose-400">This is a real
+                post.</span>
         </p>
         <form method="post" action="/test/post-now"
             onsubmit="return confirm('Are you sure you want to post now? This will send notifications immediately.');">
-            <button type="submit"
-                class="inline-flex items-center px-3 py-1.5 rounded-md bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/30 text-sm font-medium
+            <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-md bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/30 text-sm font-medium
                        hover:bg-rose-500/25 hover:text-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500/50
                        transition">
                 Post Now

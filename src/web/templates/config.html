@@ -4,7 +4,7 @@
 {% block content %}
 <div class="mb-6">
     <h1 class="text-xl font-semibold text-sky-400 tracking-tight">Configuration</h1>
-    <p class="text-sm text-zinc-500 mt-0.5">Click edit to change a value. Toggle platforms below to enable posting.</p>
+    <p class="text-sm text-zinc-400 mt-0.5">Click edit to change a value. Toggle platforms below to enable posting.</p>
 </div>
 
 <!-- Inline edit -->
@@ -17,7 +17,7 @@
             <!-- View mode -->
             <div class="text-sm text-zinc-100 font-mono" data-view>
                 {% set v = values.get(key, '') %}
-                {% if v %}{{ v.replace('T', ' ') }}{% else %}<span class="text-zinc-500">—</span>{% endif %}
+                {% if v %}{{ v.replace('T', ' ') }}{% else %}<span class="text-zinc-400">—</span>{% endif %}
             </div>
 
             <!-- Edit mode -->
@@ -30,7 +30,7 @@
                     data-save-btn>Save</button>
 
                 <button type="button"
-                    class="hidden text-xs px-2.5 py-1 rounded-md text-zinc-500 hover:text-zinc-300 transition"
+                    class="hidden text-xs px-2.5 py-1 rounded-md text-zinc-400 hover:text-zinc-300 transition"
                     data-cancel-btn>Cancel</button>
             </div>
         </div>
@@ -45,11 +45,12 @@
 <!-- card-platform -->
 <section class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
     {% for p in platforms %}
-    <div class="bg-zinc-900 rounded-lg border border-zinc-800 p-4 flex items-start gap-3
+    <div class="bg-zinc-900 rounded-lg border border-zinc-800 p-4 flex items-center gap-3
                 hover:border-zinc-700 cursor-pointer transition" data-platform-card data-platform="{{ p.key }}">
+        <i class="fa-brands fa-{{ p.key }} text-lg text-zinc-300"></i>
         <div class="flex-1 min-w-0">
             <div class="text-sm font-semibold text-zinc-100">{{ p.name }}</div>
-            <div class="text-xs text-zinc-500 mt-0.5">
+            <div class="text-xs text-zinc-400 mt-0.5">
                 {% if p.configured %}Configured{% else %}Not configured{% endif %}
             </div>
         </div>
@@ -73,8 +74,12 @@
 <dialog id="platform-modal"
     class="bg-zinc-900 text-zinc-200 rounded-lg border border-zinc-800 p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm w-full max-w-md m-auto inset-0 ">
     <div class="p-5 border-b border-zinc-800 flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-sky-400" data-modal-title>—</h2>
-        <button type="button" class="text-zinc-500 hover:text-zinc-200" data-modal-close>✕</button>
+        <div class="flex items-center gap-3">
+            <i class="fa-brands text-lg text-sky-400" data-modal-icon></i>
+            <h2 class="text-sm font-semibold text-sky-400" data-modal-title>—</h2>
+        </div>
+        <button type="button" class="text-zinc-400 hover:text-zinc-200" data-modal-close><i
+                class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="p-5 space-y-4" data-modal-fields></div>
     <div class="px-5 pb-5 text-xs hidden" data-modal-result></div>
@@ -83,7 +88,7 @@
             class="text-xs px-2.5 py-1.5 rounded-md bg-zinc-100/5 text-zinc-300 ring-1 ring-zinc-100/10 hover:bg-zinc-100/10 transition"
             data-modal-test>Test</button>
         <div class="flex items-center gap-2">
-            <button type="button" class="text-xs px-2.5 py-1.5 rounded-md text-zinc-500 hover:text-zinc-300"
+            <button type="button" class="text-xs px-2.5 py-1.5 rounded-md text-zinc-400 hover:text-zinc-300"
                 data-modal-close>Cancel</button>
             <button type="button"
                 class="text-xs px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 transition disabled:opacity-40 disabled:hover:bg-sky-500/10 disabled:cursor-not-allowed"

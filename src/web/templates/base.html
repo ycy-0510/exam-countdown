@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Exam Countdown{% endblock %}</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         @font-face {
             font-family: 'Airlock';
@@ -24,7 +25,7 @@
     {% set active = request.url.path.startswith(href) %}
     <a href="{{ href }}" class="px-2.5 py-1 text-sm rounded-md transition
             {% if active %}text-sky-400 font-semibold
-            {% else %}text-zinc-500 hover:text-zinc-200{% endif %}">
+            {% else %}text-zinc-400 hover:text-zinc-200{% endif %}">
         {{ label }}
     </a>
     {% endmacro %}

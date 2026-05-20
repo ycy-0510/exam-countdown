@@ -22,7 +22,6 @@ class JobConfig(TypedDict):
     discord_enabled: bool
 
 
-
 class JobResult(TypedDict):
     success: bool
     days_left: int | None
@@ -33,14 +32,14 @@ class JobResult(TypedDict):
     error: Optional[str]
 
 
-def _cleanup_output_dir(output_dir: str, keep:int)->None:
+def _cleanup_output_dir(output_dir: str, keep: int) -> None:
     try:
         files = [
             os.path.join(output_dir, f)
             for f in os.listdir(output_dir)
             if f.startswith("countdown_") and f.endswith(".jpg")
         ]
-        files.sort(key=os.path.getmtime,reverse=True)
+        files.sort(key=os.path.getmtime, reverse=True)
         for old in files[keep:]:
             try:
                 os.remove(old)
@@ -48,7 +47,6 @@ def _cleanup_output_dir(output_dir: str, keep:int)->None:
                 pass
     except OSError as e:
         print(f"[Warning] Failed to clean up old images in output directory: {e}")
-
 
 
 def run_job(
@@ -76,7 +74,7 @@ def run_job(
             break
         except ValueError:
             continue
-        
+
     if exam_date is None:
         return JobResult(
             success=False,
@@ -100,11 +98,17 @@ def run_job(
         image_filename = f"countdown_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
     local_image_path = os.path.join(output_dir, image_filename)
 
+    # ext of background image may be jpeg, jpg or png, so we need to find the correct one
+    background_image_path: str | None = None
+    for ext in ["jpg", "jpeg", "png"]:
+        background_image_path = os.path.join(BASE_DIR, "assets", f"current.{ext}")
+        if os.path.exists(background_image_path):
+            break
     try:
         generate_countdown_image(
             days_left=days_left,
             output_path=local_image_path,
-            bg_path=os.path.join(BASE_DIR, "assets", "116.png"),
+            bg_path=background_image_path,
             font_path=os.path.join(BASE_DIR, "assets", "arialroundedmtbold.ttf"),
         )
     except Exception as e:
@@ -155,7 +159,7 @@ def run_job(
     )
     caption = f"#{exam_name}倒數 {days_left} 天！大家準備好了嗎？ 📚✍️\n\n#倒數計時 #考試倒數 #考試加油 #{exam_name}"
     # Publish to Instagram
-    if  ig_enabled and ig_account_id and ig_access_token:
+    if ig_enabled and ig_account_id and ig_access_token:
         print("[Info] Posting to Instagram...")
         try:
             publish_to_instagram(

@@ -42,6 +42,17 @@
     {% endfor %}
 </section>
 
+<!-- card-template -->
+<section class="bg-zinc-900 rounded-lg border border-zinc-800 p-4 flex items-center gap-3
+                hover:border-zinc-700 cursor-pointer transition mb-6" id="template-card">
+    <i class="fa-solid fa-image text-lg text-zinc-300"></i>
+    <div class="flex-1 min-w-0">
+        <div class="text-sm font-semibold text-zinc-100">Image Template</div>
+        <div class="text-xs text-zinc-400 mt-0.5">Background used for the countdown image</div>
+    </div>
+    <i class="fa-solid fa-chevron-right text-xs text-zinc-500"></i>
+</section>
+
 <!-- card-platform -->
 <section class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
     {% for p in platforms %}
@@ -94,6 +105,84 @@
                 class="text-xs px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 transition disabled:opacity-40 disabled:hover:bg-sky-500/10 disabled:cursor-not-allowed"
                 disabled data-modal-save>Save</button>
         </div>
+    </div>
+</dialog>
+
+<!-- template modal -->
+<dialog id="template-modal"
+    class="bg-zinc-900 text-zinc-200 rounded-lg border border-zinc-800 p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm w-full max-w-lg m-auto inset-0">
+    <div class="p-5 border-b border-zinc-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-image text-lg text-sky-400"></i>
+            <h2 class="text-sm font-semibold text-sky-400">Image Template</h2>
+        </div>
+        <button type="button" class="text-zinc-400 hover:text-zinc-200" data-template-close>
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="p-5 space-y-5">
+        <!-- Preview block -->
+        <div>
+            <div class="flex items-center justify-between mb-2">
+                <div class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Current template</div>
+                <a href="/config/template/preview?{{ now }}" download="template-preview.jpg"
+                    class="text-xs px-2.5 py-1 rounded-md bg-zinc-100/5 text-zinc-300 ring-1 ring-zinc-100/10 hover:bg-zinc-100/10 transition inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i> Preview with text
+                </a>
+            </div>
+            <div class="bg-zinc-950 rounded-md border border-zinc-800 p-2 flex items-center justify-center">
+                <img id="template-current-img" src="/config/template/current?{{ now }}"
+                    alt="current template"
+                    class="max-h-64 rounded"
+                    onerror="this.outerHTML='<span class=\'text-xs text-zinc-500 italic py-8\'>No template uploaded yet</span>'" />
+            </div>
+            <p class="text-[11px] text-zinc-500 mt-2 leading-relaxed">
+                Download the preview to see where the countdown number and date will be drawn over your image.
+            </p>
+        </div>
+
+        <!-- Color palette -->
+        <div class="border-t border-zinc-800 pt-5">
+            <div class="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Color palette</div>
+            <p class="text-[11px] text-zinc-500 mb-3 leading-relaxed">
+                Use these colors when designing your template so it matches the rendered text.
+            </p>
+            <div class="flex flex-wrap gap-2">
+                {% for c in palette %}
+                <button type="button" data-copy-color="{{ c.hex }}" title="{{ c.desc }}"
+                    class="inline-flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-lg bg-zinc-950 border border-zinc-800 hover:border-zinc-700 transition group">
+                    <span class="w-4 h-4 rounded-full shrink-0 border border-zinc-700"
+                        style="background:{{ c.hex }}"></span>
+                    <span class="text-[11px] text-zinc-300 font-mono">{{ c.hex }}</span>
+                    <i class="fa-regular fa-copy text-[10px] text-zinc-500 group-hover:text-zinc-300"></i>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Upload block -->
+        <div class="border-t border-zinc-800 pt-5">
+            <div class="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Upload new template</div>
+            <input type="file" id="template-file" accept="image/png,image/jpeg"
+                class="block w-full text-xs text-zinc-300
+                       file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0
+                       file:text-xs file:font-medium
+                       file:bg-zinc-100/5 file:text-zinc-300 file:ring-1 file:ring-zinc-100/10
+                       hover:file:bg-zinc-100/10 file:transition file:cursor-pointer" />
+            <p class="text-[11px] text-zinc-500 mt-2">PNG or JPEG. Recommended 1080 × 1350.</p>
+        </div>
+
+        <div class="text-xs hidden" id="template-result"></div>
+    </div>
+
+    <div class="p-5 border-t border-zinc-800 flex items-center justify-end gap-2">
+        <button type="button" class="text-xs px-2.5 py-1.5 rounded-md text-zinc-400 hover:text-zinc-300"
+            data-template-close>Cancel</button>
+        <button type="button" id="template-upload-btn" disabled
+            class="text-xs px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 transition disabled:opacity-40 disabled:hover:bg-sky-500/10 disabled:cursor-not-allowed">
+            Upload
+        </button>
     </div>
 </dialog>
 

@@ -17,6 +17,7 @@ from .. import scheduler
 from core.ig_publisher import test_instagram
 from core.fb_publisher import test_facebook
 from core.discord_publisher import test_discord
+from core.image_generator import PALETTE
 
 router = APIRouter(prefix="/config", tags=["config"])
 
@@ -72,6 +73,7 @@ async def show_config(request: Request):
             "general_fields": GENERAL_FIELDS,
             "platforms": platforms_state,
             "values": values,
+            "palette": PALETTE,
             "now": int(time.time()),
         },
     )

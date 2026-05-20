@@ -166,3 +166,71 @@ modalTest.addEventListener('click', async () => {
 document.querySelectorAll('[data-platform-card]').forEach(card => {
     card.addEventListener('click', () => openModal(card.dataset.platform));
 });
+
+// Template modal
+const templateModal = document.getElementById('template-modal');
+const templateCard = document.getElementById('template-card');
+const templateFile = document.getElementById('template-file');
+const templateUploadBtn = document.getElementById('template-upload-btn');
+const templateResult = document.getElementById('template-result');
+
+templateCard.addEventListener('click', () => templateModal.showModal());
+templateModal.querySelectorAll('[data-template-close]').forEach(b =>
+    b.addEventListener('click', () => templateModal.close())
+);
+
+function showTemplateResult(success, message) {
+    templateResult.classList.remove('hidden');
+    const color = success === true ? 'text-emerald-400' : success === false ? 'text-rose-400' : 'text-zinc-400';
+    const icon = success === true
+        ? '<i class="fa-solid fa-circle-check"></i> '
+        : success === false ? '<i class="fa-solid fa-circle-xmark"></i> ' : '';
+    templateResult.className = `text-xs ${color} font-medium`;
+    templateResult.innerHTML = icon;
+    templateResult.appendChild(document.createTextNode(message));
+}
+
+templateFile.addEventListener('change', () => {
+    templateUploadBtn.disabled = !templateFile.files.length;
+    templateResult.classList.add('hidden');
+});
+
+// Color palette copy
+document.querySelectorAll('[data-copy-color]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const hex = btn.dataset.copyColor;
+        const icon = btn.querySelector('i');
+        try {
+            await navigator.clipboard.writeText(hex);
+            const prev = icon.className;
+            icon.className = 'fa-solid fa-check text-[10px] text-emerald-400';
+            setTimeout(() => { icon.className = prev; }, 1000);
+        } catch (e) {
+            alert(`Copy failed: ${e.message}`);
+        }
+    });
+});
+
+templateUploadBtn.addEventListener('click', async () => {
+    if (!templateFile.files.length) return;
+    const formData = new FormData();
+    formData.append('uploaded_file', templateFile.files[0]);
+
+    showTemplateResult(null, 'Uploading…');
+    templateUploadBtn.disabled = true;
+
+    try {
+        const res = await fetch('/config/template', { method: 'POST', body: formData });
+        if (res.ok) {
+            showTemplateResult(true, 'Uploaded successfully. Reloading…');
+            setTimeout(() => location.reload(), 800);
+        } else {
+            const text = await res.text();
+            showTemplateResult(false, text || `Upload failed (${res.status})`);
+            templateUploadBtn.disabled = false;
+        }
+    } catch (e) {
+        showTemplateResult(false, `Upload failed: ${e.message}`);
+        templateUploadBtn.disabled = false;
+    }
+});

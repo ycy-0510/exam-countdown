@@ -8,7 +8,7 @@ document.querySelectorAll('[data-field-row]').forEach(row => {
     const cancelBtn = row.querySelector('[data-cancel-btn]');
 
     function enterEdit() {
-        input.value = view.textContent.trim() === '—' ? '' : view.textContent.trim();
+        input.value = input.defaultValue;
         view.classList.add('hidden');
         input.classList.remove('hidden');
         editBtn.classList.add('hidden');
@@ -18,7 +18,7 @@ document.querySelectorAll('[data-field-row]').forEach(row => {
     }
 
     function exitEdit(newValue) {
-        if (newValue !== undefined) view.textContent = newValue || '—';
+        if (newValue !== undefined) view.textContent = newValue.replace('T', ' ') || '—';
         view.classList.remove('hidden');
         input.classList.add('hidden');
         editBtn.classList.remove('hidden');
@@ -36,6 +36,7 @@ document.querySelectorAll('[data-field-row]').forEach(row => {
             body: JSON.stringify({ key, value }),
         });
         if (res.ok) {
+            input.defaultValue = value;
             exitEdit(value);
         } else {
             const err = await res.json().catch(() => ({}));

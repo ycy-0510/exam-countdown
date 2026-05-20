@@ -69,14 +69,15 @@ def run_job(
 
     exam_datetime_str = config["exam_date_time"]
 
-    try:
-        if len(exam_datetime_str.strip()) > 10:
-            exam_date = datetime.strptime(exam_datetime_str, "%Y-%m-%d %H:%M:%S")
-        else:
-            exam_date = datetime.strptime(exam_datetime_str, "%Y-%m-%d")
-        days_left = (exam_date.date() - today.date()).days
-
-    except ValueError:
+    exam_date = None
+    for fmt in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M"):
+        try:
+            exam_date = datetime.strptime(exam_datetime_str, fmt)
+            break
+        except ValueError:
+            continue
+        
+    if exam_date is None:
         return JobResult(
             success=False,
             days_left=None,
@@ -86,6 +87,8 @@ def run_job(
             discord_status="skipped",
             error=f"Exam date: {exam_datetime_str} is invalid, please use YYYY-MM-DD or YYYY-MM-DD HH:MM:SS",
         )
+
+    days_left = (exam_date.date() - today.date()).days
 
     # Generate countdown image
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

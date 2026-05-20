@@ -16,7 +16,8 @@
 
             <!-- View mode -->
             <div class="text-sm text-zinc-100 font-mono" data-view>
-                {{ values.get(key, '') or '—' }}
+                {% set v = values.get(key, '') %}
+                {% if v %}{{ v.replace('T', ' ') }}{% else %}<span class="text-zinc-500">—</span>{% endif %}
             </div>
 
             <!-- Edit mode -->

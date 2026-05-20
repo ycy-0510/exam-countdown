@@ -22,8 +22,8 @@ router = APIRouter(prefix="/config", tags=["config"])
 
 GENERAL_FIELDS = [
     ("exam_name", "Exam Name", "text"),
-    ("exam_date_time", "Exam Date Time", "text"),
-    ("schedule_time", "Schedule Time (HH:MM)", "text"),
+    ("exam_date_time", "Exam Date Time", "datetime-local"),
+    ("schedule_time", "Schedule Time (HH:MM)", "time"),
 ]
 
 PLATFORM_FIELDS = {
@@ -44,6 +44,15 @@ PLATFORM_FIELDS = {
 @router.get("", response_class=HTMLResponse)
 async def show_config(request: Request):
     values = get_all_configs()
+    exam_date_time = values.get("exam_date_time")
+    if exam_date_time:
+        for fmt in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M"):
+            try:
+                dt = time.strptime(exam_date_time, fmt)
+                values["exam_date_time"] = time.strftime("%Y-%m-%dT%H:%M", dt)
+                break
+            except ValueError:
+                continue
     platforms_state = [
         {
             "name": platform.capitalize(),

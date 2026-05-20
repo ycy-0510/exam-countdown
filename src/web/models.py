@@ -11,7 +11,7 @@ class Config(Base):
     key: Mapped[str] = mapped_column(String(64), primary_key=True)
     value: Mapped[str] = mapped_column(Text, nullable=False, default="")
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
@@ -20,12 +20,16 @@ class Config(Base):
 
 class RunLog(Base):
     __tablename__ = "run_logs"
-    
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     started_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.now(timezone.utc)
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
     )
-    finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     success: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     days_left: Mapped[int | None] = mapped_column(Integer, nullable=True)
     image_path: Mapped[str | None] = mapped_column(Text, nullable=True)

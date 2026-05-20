@@ -52,6 +52,12 @@
         {% endif %}
         {% block content %}{% endblock %}
     </main>
+    <script>
+        document.querySelectorAll('time[data-localize]').forEach(el => {
+            const d = new Date(el.dateTime);
+            if (!isNaN(d)) el.textContent = d.toLocaleString('sv-SE');
+        });
+    </script>
 </body>
 
 </html>

@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Iterable
 from sqlalchemy import select
 
@@ -7,6 +8,15 @@ from .models import Config, RunLog
 from core.job import JobResult, JobConfig
 
 PLATFORMS = ("instagram", "facebook", "discord")
+
+OUTPUT_DIR = (Path(__file__).resolve().parent.parent / "output").resolve()
+
+
+def get_available_images() -> set[str]:
+    """Return the filenames of currently available countdown images on disk."""
+    if not OUTPUT_DIR.exists():
+        return set()
+    return {p.name for p in OUTPUT_DIR.glob("*.jpg")}
 
 
 def get_all_configs() -> dict[str, str]:
@@ -108,6 +118,12 @@ def finalize_run_log(log_id: int, result: JobResult) -> None:
         log.discord_status = result["discord_status"]
         log.error = result.get("error")
         session.commit()
+
+
+def get_run_log(log_id: int) -> RunLog | None:
+    """Fetch a single run log by its ID."""
+    with SessionLocal() as session:
+        return session.get(RunLog, log_id)
 
 
 def list_run_logs(limit: int = 50) -> list[RunLog]:

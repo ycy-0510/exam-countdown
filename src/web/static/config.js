@@ -56,7 +56,8 @@ document.querySelectorAll('[data-platform-toggle]').forEach(toggle => {
         });
         if (!res.ok) {
             e.target.checked = !enabled; // revert on failure
-            alert('Toggle failed');
+            const err = await res.json().catch(() => ({}));
+            alert(err.detail || `Toggle failed (${res.status})`);
         }
     });
 });

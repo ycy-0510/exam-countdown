@@ -52,9 +52,12 @@
         </div>
 
         <!-- Toggle switch -->
-        <label class="relative inline-flex items-center cursor-pointer shrink-0" onclick="event.stopPropagation()">
-            <input type="checkbox" class="sr-only peer" data-platform-toggle data-platform="{{ p.key }}" {% if p.enabled
-                %}checked{% endif %}>
+        <label
+            class="relative inline-flex items-center shrink-0 {% if p.configured %}cursor-pointer{% else %}cursor-not-allowed opacity-40{% endif %}"
+            onclick="event.stopPropagation()"
+            {% if not p.configured %}title="Configure credentials first"{% endif %}>
+            <input type="checkbox" class="sr-only peer" data-platform-toggle data-platform="{{ p.key }}"
+                {% if p.enabled %}checked{% endif %} {% if not p.configured %}disabled{% endif %}>
             <div class="w-9 h-5 bg-zinc-700 rounded-full peer-checked:bg-sky-500/60
                         after:content-[''] after:absolute after:top-0.5 after:left-0.5
                         after:bg-white after:rounded-full after:h-4 after:w-4 after:transition

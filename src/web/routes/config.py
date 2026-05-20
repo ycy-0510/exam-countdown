@@ -90,8 +90,11 @@ async def update_platform(platform: str, payload: PlatformUpdate):
     if platform not in PLATFORMS:
         raise HTTPException(status_code=404, detail=f"Unknown platform: {platform}")
     excepted_keys = {f[0] for f in PLATFORM_FIELDS[platform]}
-    items = {k:v for k,v in payload.fields.items() if k in excepted_keys}
+    items = {k: v.strip() for k, v in payload.fields.items() if k in excepted_keys}
     upsert_config_bulk(items)
+    # If any required field is now empty, force-disable to avoid silent skips
+    if any(not v for v in items.values()):
+        set_platform_enabled(platform, False)
     return {"ok": True}
 
 class PlatformToggle(BaseModel):
@@ -101,6 +104,15 @@ class PlatformToggle(BaseModel):
 async def toggle_platform(platform: str, payload: PlatformToggle):
     if platform not in PLATFORMS:
         raise HTTPException(status_code=404, detail=f"Unknown platform: {platform}")
+    if payload.enabled:
+        configs = get_all_configs()
+        required = [f[0] for f in PLATFORM_FIELDS[platform]]
+        missing = [k for k in required if not configs.get(k)]
+        if missing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot enable {platform}: missing {', '.join(missing)}",
+            )
     set_platform_enabled(platform, payload.enabled)
     return {"ok": True, "enabled": payload.enabled}
 

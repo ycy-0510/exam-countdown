@@ -1,13 +1,14 @@
 # Exam Countdown
 
 ## Features implemented:
-- [x] Countdown image generation
-- [x] Instagram auto-publishing
-- [x] Facebook auto-publishing
-- [x] Discord auto-publishing
-- [x] Web-based configuration and logs
-- [ ] Navbar with RWD design
-- [x] Live log streaming in web interface
+
+- [X] Countdown image generation
+- [X] Instagram auto-publishing
+- [X] Facebook auto-publishing
+- [X] Discord auto-publishing
+- [X] Web-based configuration and logs
+- [X] Navbar with RWD design
+- [X] Live log streaming in web interface
 - [ ] User authentication for configuration access
 - [ ] Landing page with quick setup
 - [ ] Support for multiple exams and platforms

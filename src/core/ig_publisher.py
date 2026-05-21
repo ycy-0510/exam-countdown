@@ -29,7 +29,6 @@ def publish_to_instagram(
     container_id = container_res.json().get("id")
     print(f"[Success] Media Container created successfully, ID: {container_id}")
 
-    # Instagram 建議稍等一下讓系統處理圖片
     time.sleep(3)
 
     # 2. Publish the Container

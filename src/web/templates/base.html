@@ -7,6 +7,7 @@
     <title>{% block title %}Exam Countdown{% endblock %}</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="shortcut icon" href="/static/icon.png" type="image/png">
     <style>
         @font-face {
             font-family: 'Airlock';
@@ -23,7 +24,7 @@
 <body class="bg-zinc-950 text-zinc-200 min-h-screen font-sans antialiased selection:bg-sky-500/30">
     {% macro nav_link(href, label) %}
     {% set active = request.url.path.startswith(href) %}
-    <a href="{{ href }}" class="px-2.5 py-1 text-sm rounded-md transition
+    <a href="{{ href }}" class="px-2.5 py-1 text-md rounded-md transition
             {% if active %}text-sky-400 font-semibold
             {% else %}text-zinc-400 hover:text-zinc-200{% endif %}">
         {{ label }}
@@ -31,7 +32,8 @@
     {% endmacro %}
     <nav class="sticky top-0 z-10 bg-zinc-950/70 backdrop-blur-md border-b border-zinc-800/70 font-['Airlock']">
         <div class="max-w-4xl mx-auto px-4 py-2.5 flex items-center gap-3">
-            <span class="text-lg font-semibold text-sky-400 mr-3 tracking-tight">Exam Countdown</span>
+            <img src="/static/icon.png" alt="Icon" class="w-10 h-10 rounded-lg border border-zinc-300">
+            <span class="text-xl font-semibold text-sky-400 mr-3 tracking-tight">Exam Countdown</span>
             <div class="flex items-center gap-1">
                 {{ nav_link("/config", "Config") }}
                 {{ nav_link("/logs", "Logs") }}
@@ -57,6 +59,12 @@
             const d = new Date(el.dateTime);
             if (!isNaN(d)) el.textContent = d.toLocaleString('sv-SE');
         });
+        if (location.pathname.startsWith('/logs')) {
+            const es = new EventSource('/stream/logs'); //max es = 6 on some browsers
+            es.addEventListener('new_log', () => {
+                location.reload();
+            })
+        }
     </script>
 </body>
 

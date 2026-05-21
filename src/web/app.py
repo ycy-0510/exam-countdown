@@ -37,9 +37,11 @@ from .routes.logs import router as logs_router
 from .routes.test import router as test_router
 from .routes.output import router as output_router
 from .routes.template import router as template_router
+from .routes.stream import router as stream_router
 
 app.include_router(config_router)
 app.include_router(logs_router)
 app.include_router(test_router)
 app.include_router(output_router)
 app.include_router(template_router)
+app.include_router(stream_router)

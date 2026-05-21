@@ -26,8 +26,8 @@
                        focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition"
                     data-edit>
                 <button type="button"
-                    class="hidden text-xs px-2.5 py-1 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 transition"
-                    data-save-btn>Save</button>
+                    class="hidden text-xs px-2.5 py-1 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    disabled data-save-btn>Save</button>
 
                 <button type="button"
                     class="hidden text-xs px-2.5 py-1 rounded-md text-zinc-400 hover:text-zinc-300 transition"
@@ -81,7 +81,7 @@
     {% endfor %}
 </section>
 
-<!-- modal -->
+<!-- platform modal -->
 <dialog id="platform-modal"
     class="bg-zinc-900 text-zinc-200 rounded-lg border border-zinc-800 p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm w-full max-w-md m-auto inset-0 ">
     <div class="p-5 border-b border-zinc-800 flex items-center justify-between">
@@ -132,8 +132,7 @@
                 </a>
             </div>
             <div class="bg-zinc-950 rounded-md border border-zinc-800 p-2 flex items-center justify-center">
-                <img id="template-current-img" src="/config/template/current?{{ now }}"
-                    alt="current template"
+                <img id="template-current-img" src="/config/template/current?{{ now }}" alt="current template"
                     class="max-h-64 rounded"
                     onerror="this.outerHTML='<span class=\'text-xs text-zinc-500 italic py-8\'>No template uploaded yet</span>'" />
             </div>
@@ -164,8 +163,7 @@
         <!-- Upload block -->
         <div class="border-t border-zinc-800 pt-5">
             <div class="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Upload new template</div>
-            <input type="file" id="template-file" accept="image/png,image/jpeg"
-                class="block w-full text-xs text-zinc-300
+            <input type="file" id="template-file" accept="image/png,image/jpeg" class="block w-full text-xs text-zinc-300
                        file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0
                        file:text-xs file:font-medium
                        file:bg-zinc-100/5 file:text-zinc-300 file:ring-1 file:ring-zinc-100/10
@@ -193,7 +191,7 @@
     "name": "{{ p.name }}",
     "fields": [{% for fk, fl, ft in p.fields %}{"key": "{{ fk }}", "label": "{{ fl }}", "type": "{{ ft }}"}{% if not loop.last %},{% endif %}{% endfor %}],
     "values": {
-        {% for fk, fl, ft in p.fields %}"{{ fk }}": {{ (values.get(fk) or '')|tojson }}{% if not loop.last %},{% endif %}{% endfor %}
+        {% for fk, fl, ft in p.fields %}"{{ fk }}":{% if ft == "password" %}""{% else %} {{ (values.get(fk) or '')|tojson }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}
     }
 }{% if not loop.last %},{% endif %}
 {% endfor %}

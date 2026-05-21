@@ -9,6 +9,7 @@ document.querySelectorAll('[data-field-row]').forEach(row => {
 
     function enterEdit() {
         input.value = input.defaultValue;
+        saveBtn.disabled = true;
         view.classList.add('hidden');
         input.classList.remove('hidden');
         editBtn.classList.add('hidden');
@@ -16,6 +17,10 @@ document.querySelectorAll('[data-field-row]').forEach(row => {
         cancelBtn.classList.remove('hidden');
         input.focus();
     }
+
+    input.addEventListener('input', () => {
+        saveBtn.disabled = !input.value.trim() || input.value.trim() === input.defaultValue.trim();
+    })
 
     function exitEdit(newValue) {
         if (newValue !== undefined) view.textContent = newValue.replace('T', ' ') || '—';
@@ -85,6 +90,7 @@ function openModal(platform) {
         <div>
             <label class="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1.5">${f.label}</label>
             <input type="${f.type}" name="${f.key}" value="${data.values[f.key] || ''}"
+                ${f.type === 'password' ? 'placeholder="Enter to update"' : ''}
                 class="block w-full rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm
                        focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition" />
         </div>
@@ -115,7 +121,8 @@ function showResult(success, summary, detail) {
 
     const line = document.createElement('div');
     line.className = `${color} font-medium text-sm`;
-    line.textContent = `${icon} ${summary}`;
+    line.innerHTML = icon ? `${icon} ` : '';
+    line.appendChild(document.createTextNode(summary));
     modalResult.appendChild(line);
 
     if (detail) {

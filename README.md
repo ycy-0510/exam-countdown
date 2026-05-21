@@ -6,7 +6,8 @@
 - [x] Facebook auto-publishing
 - [x] Discord auto-publishing
 - [x] Web-based configuration and logs
-- [ ] Live log streaming in web interface
+- [ ] Navbar with RWD design
+- [x] Live log streaming in web interface
 - [ ] User authentication for configuration access
 - [ ] Landing page with quick setup
 - [ ] Support for multiple exams and platforms

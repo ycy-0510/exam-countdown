@@ -85,6 +85,8 @@ class FieldUpdate(BaseModel):
 
 @router.post("/field")
 async def update_field(payload: FieldUpdate):
+    if not payload.value.strip():
+        raise HTTPException(status_code=400, detail=f"{payload.key} cannot be empty")
     if payload.key == "schedule_time":
         try:
             set_schedule_time_in_db(payload.value)

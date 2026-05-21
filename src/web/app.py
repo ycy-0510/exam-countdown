@@ -1,9 +1,11 @@
 from contextlib import asynccontextmanager
+import os
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from minify_html import minify
 
 from .db import init_db
 from . import scheduler
@@ -11,7 +13,18 @@ from . import scheduler
 WEB_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = WEB_DIR / "templates"
 
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+class MinifyingTemplates(Jinja2Templates):
+    def TemplateResponse(self,*args, **kwargs):
+        if os.getenv("DEBUG","false").lower() == "true":
+            return super().TemplateResponse(*args, **kwargs)
+        response = super().TemplateResponse(*args, **kwargs)
+        minified = minify(response.body.decode('utf-8'),minify_css=True, minify_js=True) # type: ignore
+        response.body = minified.encode('utf-8')
+        response.headers["Content-Length"] = str(len(response.body))
+        return response
+
+
+templates = MinifyingTemplates(directory=str(TEMPLATES_DIR))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

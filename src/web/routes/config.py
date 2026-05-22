@@ -1,7 +1,7 @@
 import time
 
-from fastapi import APIRouter, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Request
+from fastapi.responses import HTMLResponse
 from fastapi import HTTPException
 from pydantic import BaseModel
 from ..app import templates
@@ -11,6 +11,8 @@ from ..repository import (
     upsert_config_bulk,
     set_schedule_time_in_db,
     set_platform_enabled,
+    get_or_create_ntfy_topic,
+    get_ntfy_enabled,
     PLATFORMS,
 )
 from .. import scheduler
@@ -18,6 +20,8 @@ from core.ig_publisher import test_instagram
 from core.fb_publisher import test_facebook
 from core.discord_publisher import test_discord
 from core.image_generator import PALETTE
+from core.ntfy_publisher import generate_random_topic, DEFAULT_SERVER as NTFY_SERVER, test_ntfy as send_test_ntfy
+import re
 
 router = APIRouter(prefix="/config", tags=["config"])
 
@@ -75,8 +79,14 @@ async def show_config(request: Request):
             "values": values,
             "palette": PALETTE,
             "now": int(time.time()),
+            "ntfy": {
+                "topic": get_or_create_ntfy_topic(),
+                "enabled": get_ntfy_enabled(),
+                "server": NTFY_SERVER,
+            },
         },
     )
+
 
 class FieldUpdate(BaseModel):
     key: str
@@ -92,13 +102,17 @@ async def update_field(payload: FieldUpdate):
             set_schedule_time_in_db(payload.value)
             scheduler.apply_schedule_from_db()
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=f"Invalid schedule time format: {e}")
+            raise HTTPException(
+                status_code=400, detail=f"Invalid schedule time format: {e}"
+            )
     else:
         upsert_config(payload.key, payload.value)
     return {"ok": True}
 
+
 class PlatformUpdate(BaseModel):
     fields: dict[str, str]
+
 
 @router.post("/platform/{platform}")
 async def update_platform(platform: str, payload: PlatformUpdate):
@@ -112,8 +126,10 @@ async def update_platform(platform: str, payload: PlatformUpdate):
         set_platform_enabled(platform, False)
     return {"ok": True}
 
+
 class PlatformToggle(BaseModel):
     enabled: bool
+
 
 @router.post("/platform/{platform}/toggle")
 async def toggle_platform(platform: str, payload: PlatformToggle):
@@ -131,15 +147,51 @@ async def toggle_platform(platform: str, payload: PlatformToggle):
     set_platform_enabled(platform, payload.enabled)
     return {"ok": True, "enabled": payload.enabled}
 
+
 @router.post("/test/{platform}")
-async def test_platform(platform: str,payload: PlatformUpdate):
+async def test_platform(platform: str, payload: PlatformUpdate):
     f = payload.fields
     if platform == "instagram":
-        ok, summary, detail = test_instagram(f.get("instagram_account_id", ""), f.get("instagram_access_token", ""))
+        ok, summary, detail = test_instagram(
+            f.get("instagram_account_id", ""), f.get("instagram_access_token", "")
+        )
     elif platform == "facebook":
-        ok, summary, detail = test_facebook(f.get("facebook_page_id", ""), f.get("facebook_access_token", ""))
+        ok, summary, detail = test_facebook(
+            f.get("facebook_page_id", ""), f.get("facebook_access_token", "")
+        )
     elif platform == "discord":
         ok, summary, detail = test_discord(f.get("discord_webhook_url", ""))
     else:
         raise HTTPException(status_code=404, detail=f"Unknown platform: {platform}")
+    return {"success": ok, "summary": summary, "detail": detail}
+
+NTFY_TOPIC_RE = re.compile(r"[A-Za-z0-9_\-]{1,64}")
+
+@router.post("/ntfy/topic")
+async def update_ntfy_topic(payload: FieldUpdate):
+    topic = payload.value.strip()
+    if not NTFY_TOPIC_RE.fullmatch(topic):
+        raise HTTPException(
+            status_code=400,
+            detail="Topic must be 1-64 chars; letters, digits, _ or - only.",
+        )
+    upsert_config("ntfy_topic",topic)
+    return {"ok":True,"topic":topic}
+
+@router.post("/ntfy/regenerate")
+async def regenerate_ntfy_topic():
+    topic = generate_random_topic()
+    return {"ok":True,"topic":topic}
+
+@router.post("/ntfy/toggle")
+async def toggle_ntfy(payload: PlatformToggle):
+    upsert_config("ntfy_enabled","true" if payload.enabled else "false")
+    return {"ok": True, "enabled": payload.enabled}
+
+@router.post("/ntfy/test")
+async def test_ntfy_with_topic(payload: FieldUpdate):
+    topic = payload.value.strip()
+    if not NTFY_TOPIC_RE.fullmatch(topic):
+        raise HTTPException(status_code=400, detail="Invalid topic")
+    ok, summary, detail = send_test_ntfy(topic=topic)
     return {"success": ok, "summary": summary, "detail": detail}

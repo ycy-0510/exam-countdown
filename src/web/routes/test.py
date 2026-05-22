@@ -10,6 +10,8 @@ from ..repository import (
 )
 from core.job import run_job
 from .. import scheduler
+from core.ntfy_publisher import test_ntfy as send_test_ntfy
+from ..repository import get_or_create_ntfy_topic
 
 router = APIRouter(prefix="/test", tags=["test"])
 
@@ -47,3 +49,10 @@ async def test_post_now():
     return RedirectResponse(
         url="/test?message=Job+scheduled+to+run+immediately", status_code=303
     )
+
+
+@router.post("/ntfy")
+async def test_ntfy_route():
+    topic = get_or_create_ntfy_topic()
+    ok, summary, detail = send_test_ntfy(topic=topic)
+    return {"success": ok, "summary": summary, "detail": detail, "topic": topic}

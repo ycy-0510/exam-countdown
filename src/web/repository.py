@@ -6,6 +6,7 @@ from sqlalchemy import select
 from .db import SessionLocal
 from .models import Config, RunLog
 from core.job import JobResult, JobConfig
+from core.ntfy_publisher import generate_random_topic
 
 PLATFORMS = ("instagram", "facebook", "discord")
 
@@ -137,3 +138,17 @@ def list_run_logs(limit: int = 50) -> list[RunLog]:
             .all()
         )
         return list(logs)
+
+
+def get_or_create_ntfy_topic() -> str:
+    """Return current ntfy topic; if missing, generate and persist a random one."""
+    configs = get_all_configs()
+    topic = configs.get("ntfy_topic")
+    if not topic:
+        topic = generate_random_topic()
+        upsert_config("ntfy_topic", topic)
+    return topic
+
+
+def get_ntfy_enabled() -> bool:
+    return get_all_configs().get("ntfy_enabled", "true") == "true"

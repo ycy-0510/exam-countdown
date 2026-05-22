@@ -218,6 +218,141 @@ document.querySelectorAll('[data-copy-color]').forEach(btn => {
     });
 });
 
+// ntfy
+(() => {
+    const card = document.getElementById('ntfy-card');
+    if (!card) return;
+    const modal = document.getElementById('ntfy-modal');
+    const toggle = document.getElementById('ntfy-toggle');
+    const topicInput = document.getElementById('ntfy-topic-input');
+    const regenBtn = document.getElementById('ntfy-regenerate-btn');
+    const testBtn = document.getElementById('ntfy-test-btn');
+    const saveBtn = document.getElementById('ntfy-save-btn');
+    const subscribeUrl = document.getElementById('ntfy-subscribe-url');
+    const result = document.getElementById('ntfy-result');
+    const server = JSON.parse(document.getElementById('ntfy-server-data').textContent);
+
+    function updateSubscribeUrl() {
+        const t = topicInput.value.trim();
+        const url = `${server}/${t}`;
+        subscribeUrl.textContent = url;
+        subscribeUrl.href = url;
+    }
+
+    function showResult(success, summary, detail) {
+        result.classList.remove('hidden');
+        result.innerHTML = '';
+        const color = success === true ? 'text-emerald-400'
+            : success === false ? 'text-rose-400'
+                : 'text-zinc-400';
+        const icon = success === true ? '<i class="fa-solid fa-circle-check"></i> '
+            : success === false ? '<i class="fa-solid fa-circle-xmark"></i> '
+                : '';
+        const line = document.createElement('div');
+        line.className = `${color} font-medium text-sm`;
+        line.innerHTML = icon;
+        line.appendChild(document.createTextNode(summary));
+        result.appendChild(line);
+        if (detail) {
+            const det = document.createElement('details');
+            det.className = 'mt-2';
+            const sumEl = document.createElement('summary');
+            sumEl.textContent = 'Show details';
+            sumEl.className = 'cursor-pointer text-[11px] text-zinc-500 hover:text-zinc-300 select-none';
+            det.appendChild(sumEl);
+            const pre = document.createElement('pre');
+            pre.textContent = detail;
+            pre.className = 'mt-2 p-2 bg-zinc-950 rounded text-[10px] text-zinc-400 overflow-x-auto whitespace-pre-wrap break-all border border-zinc-800 font-mono';
+            det.appendChild(pre);
+            result.appendChild(det);
+        }
+    }
+
+    card.addEventListener('click', () => {
+        topicInput.dataset.original = topicInput.value;
+        saveBtn.disabled = true;
+        result.classList.add('hidden');
+        updateSubscribeUrl();
+        modal.showModal();
+    });
+    modal.querySelectorAll('[data-ntfy-close]').forEach(b =>
+        b.addEventListener('click', () => modal.close())
+    );
+
+    topicInput.addEventListener('input', () => {
+        updateSubscribeUrl();
+        const v = topicInput.value.trim();
+        saveBtn.disabled = !v || v === (topicInput.dataset.original || '');
+    });
+
+    regenBtn.addEventListener('click', async () => {
+        regenBtn.disabled = true;
+        try {
+            const res = await fetch('/config/ntfy/regenerate', { method: 'POST' });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                topicInput.value = data.topic;
+                updateSubscribeUrl();
+                saveBtn.disabled = topicInput.value.trim() === (topicInput.dataset.original || '');
+                showResult(null, 'Candidate generated. Click Save to apply.', null);
+            } else {
+                showResult(false, data.detail || `Failed (${res.status})`, null);
+            }
+        } finally {
+            regenBtn.disabled = false;
+        }
+    });
+
+    saveBtn.addEventListener('click', async () => {
+        const v = topicInput.value.trim();
+        const res = await fetch('/config/ntfy/topic', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'ntfy_topic', value: v }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+            topicInput.dataset.original = v;
+            saveBtn.disabled = true;
+            showResult(true, 'Topic saved', null);
+        } else {
+            showResult(false, data.detail || `Save failed (${res.status})`, null);
+        }
+    });
+
+    testBtn.addEventListener('click', async () => {
+        testBtn.disabled = true;
+        showResult(null, 'Sending test…', null);
+        try {
+            const res = await fetch('/config/ntfy/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'ntfy_topic', value: topicInput.value.trim() }),
+            });
+            const data = await res.json().catch(() => ({}));
+            showResult(data.success, data.summary || 'No response', data.detail || null);
+        } catch (e) {
+            showResult(false, e.message, null);
+        } finally {
+            testBtn.disabled = false;
+        }
+    });
+
+    toggle.addEventListener('change', async e => {
+        const enabled = e.target.checked;
+        const res = await fetch('/config/ntfy/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled }),
+        });
+        if (!res.ok) {
+            e.target.checked = !enabled;
+            const err = await res.json().catch(() => ({}));
+            alert(err.detail || `Toggle failed (${res.status})`);
+        }
+    });
+})();
+
 templateUploadBtn.addEventListener('click', async () => {
     if (!templateFile.files.length) return;
     const formData = new FormData();

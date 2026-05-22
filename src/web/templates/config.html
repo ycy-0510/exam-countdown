@@ -23,7 +23,7 @@
             <!-- Edit mode -->
             <div class="flex items-center gap-2" data-edit-view>
                 <input type="{{ type }}" value="{{ values.get(key, '') }}" class="hidden flex-1 min-w-0 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm
-                       focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition"
+                        focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition"
                     data-edit>
                 <button type="button"
                     class="hidden text-xs px-2.5 py-1 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 disabled:opacity-40 disabled:cursor-not-allowed transition"
@@ -79,6 +79,24 @@
         </label>
     </div>
     {% endfor %}
+</section>
+
+<!-- card-ntfy -->
+<section class="bg-zinc-900 rounded-lg border border-zinc-800 p-4 flex items-center gap-3
+                hover:border-zinc-700 cursor-pointer transition mb-6" id="ntfy-card">
+    <i class="fa-solid fa-bell text-lg text-zinc-300"></i>
+    <div class="flex-1 min-w-0">
+        <div class="text-sm font-semibold text-zinc-100">Error Notifications</div>
+        <div class="text-xs text-zinc-400 mt-0.5">ntfy push when the scheduled job fails</div>
+    </div>
+    <label class="relative inline-flex items-center shrink-0 cursor-pointer"
+        onclick="event.stopPropagation()">
+        <input type="checkbox" class="sr-only peer" id="ntfy-toggle" {% if ntfy.enabled %}checked{% endif %}>
+        <div class="w-9 h-5 bg-zinc-700 rounded-full peer-checked:bg-sky-500/60
+                    after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                    after:bg-white after:rounded-full after:h-4 after:w-4 after:transition
+                    peer-checked:after:translate-x-4"></div>
+    </label>
 </section>
 
 <!-- platform modal -->
@@ -183,6 +201,64 @@
         </button>
     </div>
 </dialog>
+
+<!-- ntfy modal -->
+<dialog id="ntfy-modal"
+    class="bg-zinc-900 text-zinc-200 rounded-lg border border-zinc-800 p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm w-full max-w-md m-auto inset-0">
+    <div class="p-5 border-b border-zinc-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-bell text-lg text-sky-400"></i>
+            <h2 class="text-sm font-semibold text-sky-400">Error Notifications (ntfy)</h2>
+        </div>
+        <button type="button" class="text-zinc-400 hover:text-zinc-200" data-ntfy-close>
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="p-5 space-y-4">
+        <p class="text-xs text-zinc-400 leading-relaxed">
+            Receive a push notification when the scheduled job fails. Install the
+            <a href="https://ntfy.sh/" target="_blank" rel="noopener" class="text-sky-400 hover:underline">ntfy app</a>
+            and subscribe to your topic. Anyone with the topic name can send & receive — keep it secret.
+        </p>
+
+        <div>
+            <label class="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1.5">Topic</label>
+            <div class="flex items-center gap-2">
+                <input type="text" id="ntfy-topic-input" value="{{ ntfy.topic }}"
+                    class="block w-full rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm font-mono
+                            focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition" />
+                <button type="button" id="ntfy-regenerate-btn" title="Generate random topic"
+                    class="text-xs px-2.5 py-1.5 rounded-md bg-zinc-100/5 text-zinc-300 ring-1 ring-zinc-100/10 hover:bg-zinc-100/10 transition shrink-0">
+                    <i class="fa-solid fa-dice"></i>
+                </button>
+            </div>
+            <p class="text-[11px] text-zinc-500 mt-1.5">
+                Subscribe URL:
+                <a href="{{ ntfy.server }}/{{ ntfy.topic }}" target="_blank" rel="noopener"
+                    class="font-mono text-zinc-400 hover:text-sky-400" id="ntfy-subscribe-url">{{ ntfy.server }}/{{ ntfy.topic }}</a>
+            </p>
+        </div>
+
+        <div class="text-xs hidden" id="ntfy-result"></div>
+    </div>
+
+    <div class="p-5 border-t border-zinc-800 flex items-center justify-between gap-3">
+        <button type="button" id="ntfy-test-btn"
+            class="text-xs px-2.5 py-1.5 rounded-md bg-zinc-100/5 text-zinc-300 ring-1 ring-zinc-100/10 hover:bg-zinc-100/10 transition">
+            Test
+        </button>
+        <div class="flex items-center gap-2">
+            <button type="button" data-ntfy-close class="text-xs px-2.5 py-1.5 rounded-md text-zinc-400 hover:text-zinc-300">Cancel</button>
+            <button type="button" id="ntfy-save-btn" disabled
+                class="text-xs px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 transition disabled:opacity-40 disabled:hover:bg-sky-500/10 disabled:cursor-not-allowed">
+                Save
+            </button>
+        </div>
+    </div>
+</dialog>
+
+<script id="ntfy-server-data" type="application/json">{{ ntfy.server|tojson }}</script>
 
 <script id="platform-fields-data" type="application/json">
 {

@@ -35,6 +35,7 @@
             <img src="/static/icon.png" alt="Icon" class="w-10 h-10 rounded-lg border border-zinc-300">
             <span class="text-xl font-semibold text-sky-400 mr-3 tracking-tight">Exam Countdown</span>
 
+            {% if request.session.get("user") %}
             <!-- Humber button -->
             <button id="nav-toggle" type="button" data-state="closed"
                 class="sm:hidden ml-auto w-9 h-9 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition flex items-center justify-center group">
@@ -64,7 +65,9 @@
                 {{ nav_link("/config", "Config") }}
                 {{ nav_link("/logs", "Logs") }}
                 {{ nav_link("/test", "Test") }}
+                {{ nav_link("/logout","Logout")}}
             </div>
+            {% endif %}
         </div>
     </nav>
     <main class="max-w-4xl mx-auto px-4 py-8">
@@ -96,20 +99,22 @@
         const navLink = document.getElementById('nav-link');
         const navToggleIcon = document.getElementById('nav-toggle-icon');
 
-        navToggle.addEventListener('click', e => {
-            e.stopPropagation();
-            const isOpen = navToggle.dataset.state === 'open';
-            const next = !isOpen;
-            navToggle.dataset.state = next ? 'open' : 'closed';
-            navLink.dataset.state = next ? 'open' : 'closed';
-        })
+        if (navToggle && navLink) {
+            navToggle.addEventListener('click', e => {
+                e.stopPropagation();
+                const isOpen = navToggle.dataset.state === 'open';
+                const next = !isOpen;
+                navToggle.dataset.state = next ? 'open' : 'closed';
+                navLink.dataset.state = next ? 'open' : 'closed';
+            })
 
-        document.addEventListener('click', e => {
-            if (!navLink.contains(e.target) && !navToggle.contains(e.target)) {
-                navLink.dataset.state = 'closed';
-                navToggle.dataset.state = 'closed';
-            }
-        })
+            document.addEventListener('click', e => {
+                if (!navLink.contains(e.target) && !navToggle.contains(e.target)) {
+                    navLink.dataset.state = 'closed';
+                    navToggle.dataset.state = 'closed';
+                }
+            })
+        }
     </script>
 </body>
 

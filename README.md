@@ -28,7 +28,7 @@ Planned:
 - [ ] AI-powered template design and scheduling suggestions
 
 ## Video Demo
-<p><iframe width="560" height="315" src="https://www.youtube.com/embed/xD5xcwXOq-k" title="" frameBorder="0"   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"  allowFullScreen></iframe></p>
+[![Video Demo](https://img.youtube.com/vi/xD5xcwXOq-k/maxresdefault.jpg)](https://www.youtube.com/watch?v=xD5xcwXOq-k)
 
 ## Installation
 Now you can run Exam Countdown with Docker Compose. Just copy [docker-compose.yml](docker-compose.yml) and [.env.example](.env.example) to `.env`, fill in the required environment variables, and run `docker-compose up -d`.

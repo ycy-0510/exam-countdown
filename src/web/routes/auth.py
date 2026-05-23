@@ -3,12 +3,15 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from ..app import templates
 from ..auth import verify_credentials
+from ..repository import is_first_run
 
 router = APIRouter(tags=["Auth"])
 
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
+    if is_first_run():
+        return RedirectResponse("/setup")
     if request.session.get("user"):
         return RedirectResponse("/config")
     return templates.TemplateResponse(

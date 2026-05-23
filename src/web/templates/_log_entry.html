@@ -6,7 +6,8 @@
             class="fa-solid {% if log.success %}fa-circle-check text-emerald-400{% else %}fa-circle-xmark text-rose-400{% endif %} text-lg"></i>
 
         <!-- Days -->
-        <span class="font-mono text-sm text-zinc-200 w-12">D-{{ log.days_left if log.days_left is not none else '?' }}</span>
+        <span class="font-mono text-sm text-zinc-200 w-12">D-{{ log.days_left if log.days_left is not none else '?'
+            }}</span>
 
         <!-- Start time -->
         <span class="font-mono text-xs text-zinc-400 flex-1">
@@ -24,7 +25,8 @@
             running…
             {% endif %}
         </span>
-        <i class="fa-solid fa-chevron-down text-xs text-zinc-400 transition-transform rotate-90 group-open:rotate-0"></i>
+        <i
+            class="fa-solid fa-chevron-down text-xs text-zinc-400 transition-transform rotate-90 group-open:rotate-0"></i>
     </summary>
 
     <!-- Expanded content -->
@@ -68,8 +70,7 @@
             {% if fname in available_images %}
             <a href="/content/{{ fname }}" target="_blank" class="inline-block">
                 <img src="/content/{{ fname }}" alt="countdown"
-                    class="max-w-xs rounded-md border border-zinc-800 hover:opacity-80 transition"
-                    loading="lazy" />
+                    class="max-w-xs rounded-md border border-zinc-800 hover:opacity-80 transition" loading="lazy" />
             </a>
             {% else %}
             <div class="text-xs text-zinc-400 italic">Image not available</div>

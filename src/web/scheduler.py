@@ -8,7 +8,7 @@ from .repository import (
     finalize_run_log,
     get_schedule_time_from_db,
     get_or_create_ntfy_topic,
-    get_ntfy_enabled
+    get_ntfy_enabled,
 )
 from core.ntfy_publisher import send_ntfy
 from core.job import run_job
@@ -18,7 +18,8 @@ SCHEDULER_TZ = os.getenv("TZ", "Asia/Taipei")
 
 _scheduler: BackgroundScheduler | None = None
 
-def _extract_error_message(result) -> str|None:
+
+def _extract_error_message(result) -> str | None:
     """Return a human-readable error string, or None if the run was clean."""
     if not result["success"]:
         return result.get("error") or "Job failed without details"
@@ -32,6 +33,7 @@ def _extract_error_message(result) -> str|None:
         if status.startswith("error:"):
             errors.append(f"{label}: {status[6:].strip()}")
     return "; ".join(errors) if errors else None
+
 
 def _run_scheduled_job():
     config = load_config_from_db()
@@ -49,11 +51,10 @@ def _run_scheduled_job():
         send_ntfy(
             get_or_create_ntfy_topic(),
             title="Exam Countdown job failed",
-            message=error_msg
+            message=error_msg,
         )
     except Exception as e:
         print(f"[Warning] Failed to send ntfy notification: {e}")
-        
 
 
 def _parse_hh_mm(hh_mm: str) -> tuple[int, int]:

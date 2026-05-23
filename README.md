@@ -10,8 +10,8 @@
 - [X] Navbar with RWD design
 - [X] Live log streaming in web interface
 - [X] User authentication for configuration access
-- [ ] Error handling and notifications
-- [ ] Landing page with quick setup
+- [X] Error handling and notifications
+- [X] Landing page with quick setup
 - [ ] Support for multiple exams and platforms
 - [ ] Multiple templates
 - [ ] Multiple schedules per platform

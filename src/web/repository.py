@@ -7,8 +7,33 @@ from .db import SessionLocal
 from .models import Config, RunLog
 from core.job import JobResult, JobConfig
 from core.ntfy_publisher import generate_random_topic
+import bcrypt
+import secrets
 
 PLATFORMS = ("instagram", "facebook", "discord")
+
+
+def get_admin_user() -> str | None:
+    return get_all_configs().get("admin_user") or None
+
+
+def get_admin_password_hash() -> str | None:
+    return get_all_configs().get("admin_password_hash") or None
+
+
+def set_admin_credentials(username: str, password: str) -> None:
+    hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    upsert_config_bulk(
+        {
+            "admin_user": username,
+            "admin_password_hash": hashed,
+        }
+    )
+
+
+def is_first_run() -> bool:
+    return not (get_admin_user() and get_admin_password_hash())
+
 
 OUTPUT_DIR = (Path(__file__).resolve().parent.parent / "output").resolve()
 
@@ -148,6 +173,15 @@ def get_or_create_ntfy_topic() -> str:
         topic = generate_random_topic()
         upsert_config("ntfy_topic", topic)
     return topic
+
+
+def get_or_create_session_secret() -> str:
+    config = get_all_configs()
+    secret = config.get("session_secret")
+    if not secret:
+        secret = secrets.token_urlsafe(48)
+        upsert_config("session_secret", secret)
+    return secret
 
 
 def get_ntfy_enabled() -> bool:

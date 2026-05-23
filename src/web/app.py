@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 import os
 from pathlib import Path
-from fastapi import FastAPI,Request
+from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -10,6 +10,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from .db import init_db
 from . import scheduler
+from .repository import is_first_run
 
 WEB_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = WEB_DIR / "templates"
@@ -31,7 +32,6 @@ templates = MinifyingTemplates(directory=str(TEMPLATES_DIR))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
     scheduler.start()
     print("[Info] App started and scheduler running.")
     yield
@@ -48,12 +48,10 @@ app = FastAPI(
     openapi_url="/openapi.json" if DEBUG else None,
 )
 
+from .repository import get_or_create_session_secret
 
-SESSION_SECRET = os.getenv(
-    "SESSION_SECRET",
-)
-if not SESSION_SECRET:
-    raise RuntimeError("SESSION_SECRET is not set")
+init_db()
+SESSION_SECRET = get_or_create_session_secret()
 
 app.add_middleware(
     SessionMiddleware,
@@ -70,6 +68,8 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get("/")
 async def root(request: Request):
+    if is_first_run():
+        return RedirectResponse("/setup")
     if request.session.get("user"):
         return RedirectResponse(url="/config")
     return RedirectResponse("/login")
@@ -84,9 +84,11 @@ from .routes.test import router as test_router
 from .routes.output import router as output_router
 from .routes.template import router as template_router
 from .routes.stream import router as stream_router
+from .routes.setup import router as setup_router
 
 protected = [Depends(require_login)]
 
+app.include_router(setup_router)
 app.include_router(auth_router)
 app.include_router(config_router, dependencies=protected)
 app.include_router(logs_router, dependencies=protected)

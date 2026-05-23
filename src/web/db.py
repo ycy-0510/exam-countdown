@@ -8,16 +8,16 @@ DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "app.db"
 
 DATABASE_DB_PATH = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
 
-engine = create_engine(
-    DATABASE_DB_PATH, 
-    connect_args={"check_same_thread": False}
-)
-SessionLocal = sessionmaker(bind=engine,autoflush=False, autocommit=False)
+engine = create_engine(DATABASE_DB_PATH, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
 
 class Base(DeclarativeBase):
     pass
 
+
 def init_db():
     DEFAULT_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    from . import models # Import models to register them with SQLAlchemy
+    from . import models  # Import models to register them with SQLAlchemy
+
     Base.metadata.create_all(bind=engine)

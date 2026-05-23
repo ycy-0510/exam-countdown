@@ -101,7 +101,9 @@ def run_job(
     # ext of background image may be jpeg, jpg or png, so we need to find the correct one
     background_image_path: str | None = None
     for ext in ["jpg", "jpeg", "png"]:
-        background_image_path = os.path.join(BASE_DIR, "assets", f"current.{ext}")
+        background_image_path = os.path.join(
+            BASE_DIR, "assets", "useruploads", f"current.{ext}"
+        )
         if os.path.exists(background_image_path):
             break
     try:

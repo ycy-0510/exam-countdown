@@ -131,7 +131,7 @@ if __name__ == "__main__":
     generate_countdown_image(
         0,
         os.path.join(BASE_DIR, "output", "test.jpg"),
-        os.path.join(BASE_DIR, "assets", "current.png"),
+        os.path.join(BASE_DIR, "assets", "useruploads", "current.png"),
         os.path.join(BASE_DIR, "assets", "arialroundedmtbold.ttf"),
     )
 

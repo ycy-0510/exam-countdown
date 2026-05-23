@@ -11,5 +11,5 @@ services:
     env_file:
       - .env
     volumes:
-      - ./src/assets:/app/src/assets
+      - ./useruploads:/app/src/assets/useruploads
       - ./data:/app/data

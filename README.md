@@ -27,6 +27,9 @@ Planned:
 - [ ] Multiple exam countdowns in one image
 - [ ] AI-powered template design and scheduling suggestions
 
+## Video Demo
+<p><iframe width="560" height="315" src="https://www.youtube.com/embed/xD5xcwXOq-k" title="" frameBorder="0"   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"  allowFullScreen></iframe></p>
+
 ## Installation
 Now you can run Exam Countdown with Docker Compose. Just copy [docker-compose.yml](docker-compose.yml) and [.env.example](.env.example) to `.env`, fill in the required environment variables, and run `docker-compose up -d`.
 

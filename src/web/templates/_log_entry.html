@@ -1,0 +1,82 @@
+{% macro log_entry(log, available_images, open=False) %}
+<details class="bg-zinc-900 rounded-lg border border-zinc-800 group" {% if open %}open{% endif %}>
+    <summary class="px-4 py-3 flex items-center gap-4 cursor-pointer hover:bg-zinc-800/30 list-none">
+        <!-- Success/Fail icon -->
+        <i
+            class="fa-solid {% if log.success %}fa-circle-check text-emerald-400{% else %}fa-circle-xmark text-rose-400{% endif %} text-lg"></i>
+
+        <!-- Days -->
+        <span class="font-mono text-sm text-zinc-200 w-12">D-{{ log.days_left if log.days_left is not none else '?'
+            }}</span>
+
+        <!-- Start time -->
+        <span class="font-mono text-xs text-zinc-400 flex-1">
+            {% if log.started_at %}
+            <time data-localize datetime="{{ log.started_at.isoformat() }}Z">{{
+                log.started_at.strftime("%Y-%m-%d %H:%M:%S") }} UTC</time>
+            {% else %}-{% endif %}
+        </span>
+
+        <!-- Duration -->
+        <span class="font-mono text-xs text-zinc-400">
+            {% if log.finished_at and log.started_at %}
+            {{ "%.1f"|format((log.finished_at - log.started_at).total_seconds()) }}s
+            {% else %}
+            running…
+            {% endif %}
+        </span>
+        <i
+            class="fa-solid fa-chevron-down text-xs text-zinc-400 transition-transform rotate-90 group-open:rotate-0"></i>
+    </summary>
+
+    <!-- Expanded content -->
+    <div class="px-4 pb-4 pt-1 border-t border-zinc-800 space-y-4 text-sm transition duration-200">
+        <!-- Platform statuses -->
+        <div class="grid grid-cols-3 gap-3 pt-3">
+            {% for platform, icon, status in [
+            ('Instagram', 'instagram', log.ig_status),
+            ('Facebook', 'facebook', log.fb_status),
+            ('Discord', 'discord', log.discord_status)
+            ] %}
+            <div class="rounded-md bg-zinc-950 border border-zinc-800 p-3">
+                <div class="flex items-center gap-2 mb-1">
+                    <i class="fa-brands fa-{{ icon }} text-zinc-400"></i>
+                    <span class="text-xs text-zinc-400">{{ platform }}</span>
+                </div>
+                {% if status == 'posted' %}
+                <span class="text-xs text-emerald-400">posted</span>
+                {% elif status == 'skipped' %}
+                <span class="text-xs text-zinc-400">skipped</span>
+                {% else %}
+                <span class="text-xs text-rose-400" title="{{ status }}">error</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Error message -->
+        {% if log.error %}
+        <div class="rounded-md bg-rose-500/10 ring-1 ring-rose-500/20 p-3">
+            <div class="text-xs text-rose-400 font-medium mb-1 uppercase tracking-wider">Error</div>
+            <div class="text-xs text-rose-300/80 font-mono break-all">{{ log.error }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Image preview -->
+        {% if log.image_path %}
+        {% set fname = log.image_path.split('/')[-1] %}
+        <div>
+            <div class="text-xs text-zinc-400 uppercase tracking-wider mb-2">Image</div>
+            {% if fname in available_images %}
+            <a href="/content/{{ fname }}" target="_blank" class="inline-block">
+                <img src="/content/{{ fname }}" alt="countdown"
+                    class="max-w-xs rounded-md border border-zinc-800 hover:opacity-80 transition" loading="lazy" />
+            </a>
+            {% else %}
+            <div class="text-xs text-zinc-400 italic">Image not available</div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</details>
+{% endmacro %}

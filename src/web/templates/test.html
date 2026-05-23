@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% from "_log_entry.html" import log_entry %}
+{% block title %}Test | Exam Countdown{% endblock %}
+
+{% block content %}
+<div class="mb-5">
+    <h1 class="text-xl font-semibold text-sky-400 tracking-tight">Test</h1>
+    <p class="text-sm text-zinc-400 mt-0.5">Manually trigger the countdown job.</p>
+</div>
+
+{% if log %}
+<div class="mb-5">
+    <div class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">Last result</div>
+    {{ log_entry(log, available_images, open=True) }}
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div class="bg-zinc-900 rounded-lg border border-zinc-800 p-5">
+        <h2 class="text-sm font-semibold text-sky-300 mb-1">Dry Run</h2>
+        <p class="text-xs text-zinc-400 mb-4 leading-relaxed">
+            Generate image only. No Cloudinary upload, no posting. Safe to run repeatedly.
+        </p>
+        <form method="post" action="/test/dry-run">
+            <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 text-sm font-medium
+                       hover:bg-sky-500/15 hover:text-sky-200 focus:outline-none focus:ring-2 focus:ring-sky-500/40
+                       transition">
+                Run Dry Run
+            </button>
+        </form>
+    </div>
+
+    <div class="bg-zinc-900 rounded-lg border border-rose-500/20 p-5">
+        <h2 class="text-sm font-semibold text-rose-300 mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Post Now
+        </h2>
+        <p class="text-xs text-zinc-400 mb-4 leading-relaxed">
+            Upload to Cloudinary and post to Instagram, Facebook, Discord. <span class="text-rose-400">This is a real
+                post.</span>
+        </p>
+        <form method="post" action="/test/post-now"
+            onsubmit="return confirm('Are you sure you want to post now? This will send notifications immediately.');">
+            <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-md bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/30 text-sm font-medium
+                       hover:bg-rose-500/25 hover:text-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-500/50
+                       transition">
+                Post Now
+            </button>
+        </form>
+    </div>
+
+    <div class="bg-zinc-900 rounded-lg border border-zinc-800 p-5 md:col-span-2">
+        <h2 class="text-sm font-semibold text-sky-300 mb-1">
+            <i class="fa-solid fa-bell"></i> Test Error Notification
+        </h2>
+        <p class="text-xs text-zinc-400 mb-4 leading-relaxed">
+            Send a test ntfy push to your current topic. Useful to confirm the notification path works
+            before relying on it for real failures.
+        </p>
+        <button type="button" id="ntfy-test-btn" class="inline-flex items-center px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 text-sm font-medium
+                   hover:bg-sky-500/15 hover:text-sky-200 focus:outline-none focus:ring-2 focus:ring-sky-500/40
+                   transition disabled:opacity-40 disabled:cursor-not-allowed">
+            Send Test
+        </button>
+        <div class="text-xs mt-3 hidden" id="ntfy-test-result"></div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const btn = document.getElementById('ntfy-test-btn');
+        const out = document.getElementById('ntfy-test-result');
+        if (!btn) return;
+        btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            out.classList.remove('hidden');
+            out.className = 'text-xs mt-3 text-zinc-400';
+            out.textContent = 'Sending…';
+            try {
+                const res = await fetch('/test/ntfy', { method: 'POST' });
+                const data = await res.json().catch(() => ({}));
+                if (data.success) {
+                    out.className = 'text-xs mt-3 text-emerald-400';
+                    out.innerHTML = '<i class="fa-solid fa-circle-check"></i> ';
+                    out.appendChild(document.createTextNode(data.summary || 'Sent.'));
+                } else {
+                    out.className = 'text-xs mt-3 text-rose-400';
+                    out.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ';
+                    out.appendChild(document.createTextNode(
+                        (data.summary || 'Failed') + (data.detail ? ' — ' + data.detail : '')
+                    ));
+                }
+            } catch (e) {
+                out.className = 'text-xs mt-3 text-rose-400';
+                out.textContent = `✗ ${e.message}`;
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    })();
+</script>
+{% endblock %}

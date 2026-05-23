@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Exam Countdown{% endblock %}</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="shortcut icon" href="/static/icon.png" type="image/png">
+    <style>
+        @font-face {
+            font-family: 'Airlock';
+            src: url('/static/fonts/Airlock.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+    </style>
+
+    </style>
+</head>
+
+<body class="bg-zinc-950 text-zinc-200 min-h-screen font-sans antialiased selection:bg-sky-500/30">
+    {% macro nav_link(href, label) %}
+    {% set active = request.url.path.startswith(href) %}
+    <a href="{{ href }}" class="px-5 py-2 sm:px-2.5 sm:py-1 text-md rounded-md transition
+            {% if active %}text-sky-400 font-semibold bg-sky-500/10 sm:bg-transparent ring-1 ring-sky-500/20 sm:ring-0
+            {% else %}text-zinc-400 hover:text-zinc-200{% endif %}">
+        {{ label }}
+    </a>
+    {% endmacro %}
+    <nav class="sticky top-0 z-10 bg-zinc-950/70 backdrop-blur-md border-b border-zinc-800/70 font-['Airlock']">
+        <div class="max-w-4xl mx-auto px-4 py-2.5 flex items-center gap-3">
+            <img src="/static/icon.png" alt="Icon" class="w-10 h-10 rounded-lg border border-zinc-300">
+            <span class="text-xl font-semibold text-sky-400 mr-3 tracking-tight">Exam Countdown</span>
+
+            {% if request.session.get("user") %}
+            <!-- Humber button -->
+            <button id="nav-toggle" type="button" data-state="closed"
+                class="sm:hidden ml-auto w-9 h-9 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition flex items-center justify-center group">
+                <div class="relative w-5 h-4">
+                    <span
+                        class="absolute left-0 top-0 w-5 h-0.5 bg-current rounded
+                                transition-all duration-300 origin-center
+                                group-data-[state=open]:top-1/2 group-data-[state=open]:-translate-y-1/2 group-data-[state=open]:rotate-45"></span>
+                    <span class="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-0.5 bg-current rounded
+                                transition-opacity duration-300
+                                group-data-[state=open]:opacity-0"></span>
+                    <span
+                        class="absolute left-0 bottom-0 w-5 h-0.5 bg-current rounded
+                                transition-all duration-300 origin-center
+                                group-data-[state=open]:bottom-1/2 group-data-[state=open]:translate-y-1/2 group-data-[state=open]:-rotate-45"></span>
+                </div>
+            </button>
+
+            <div id="nav-link" data-state="closed"
+                class="flex flex-col gap-1 sm:flex sm:flex-row sm:items-center sm:gap-1
+                    absolute sm:static top-full left-0 right-0
+                    bg-zinc-950 sm:bg-transparent
+                    border-b border-zinc-800/70 sm:border-0
+                    px-3 sm:px-0 py-3 sm:py-0
+                    transition-all duration-200 origin-top
+                    max-sm:data-[state=closed]:opacity-0 max-sm:data-[state=closed]:-translate-y-2 max-sm:data-[state=closed]:invisible">
+                {{ nav_link("/config", "Config") }}
+                {{ nav_link("/logs", "Logs") }}
+                {{ nav_link("/test", "Test") }}
+                {{ nav_link("/logout","Logout")}}
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        {% if message %}
+        <div class="mb-4 px-3 py-2 rounded-md bg-emerald-500/10 ring-1 ring-emerald-500/20 text-emerald-300 text-sm">
+            {{ message }}
+        </div>
+        {% endif %}
+        {% if error %}
+        <div class="mb-4 px-3 py-2 rounded-md bg-rose-500/10 ring-1 ring-rose-500/20 text-rose-300 text-sm">
+            {{ error }}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+    <script>
+        document.querySelectorAll('time[data-localize]').forEach(el => {
+            const d = new Date(el.dateTime);
+            if (!isNaN(d)) el.textContent = d.toLocaleString('sv-SE');
+        });
+        if (location.pathname.startsWith('/logs')) {
+            const es = new EventSource('/stream/logs'); //max es = 6 on some browsers
+            es.addEventListener('new_log', () => {
+                location.reload();
+            })
+        }
+
+        const navToggle = document.getElementById('nav-toggle');
+        const navLink = document.getElementById('nav-link');
+        const navToggleIcon = document.getElementById('nav-toggle-icon');
+
+        if (navToggle && navLink) {
+            navToggle.addEventListener('click', e => {
+                e.stopPropagation();
+                const isOpen = navToggle.dataset.state === 'open';
+                const next = !isOpen;
+                navToggle.dataset.state = next ? 'open' : 'closed';
+                navLink.dataset.state = next ? 'open' : 'closed';
+            })
+
+            document.addEventListener('click', e => {
+                if (!navLink.contains(e.target) && !navToggle.contains(e.target)) {
+                    navLink.dataset.state = 'closed';
+                    navToggle.dataset.state = 'closed';
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>

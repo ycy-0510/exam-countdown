@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Quick Setup | Exam Countdown{% endblock %}
+
+{% block content %}
+
+{% macro step_dot(num, label) %}
+<div class="flex items-center gap-2">
+    <span class="w-6 h-6 rounded-full bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/30
+                inline-flex items-center justify-center text-xs font-semibold">{{ num }}</span>
+    <span class="text-xs text-zinc-400 uppercase tracking-wider">{{ label }}</span>
+</div>
+{% endmacro %}
+
+<div class="mb-6">
+    <h1 class="text-xl font-semibold text-sky-400 tracking-tight">Welcome — Quick Setup</h1>
+    <p class="text-sm text-zinc-400 mt-0.5">
+        Looks like this is a fresh install. Let's get the essentials in place — you can configure social platforms and
+        templates afterwards.
+    </p>
+</div>
+
+<section class="bg-zinc-900 rounded-lg border border-zinc-800 p-6">
+    <form method="post" action="/setup" class="flex flex-col gap-6" id="setup-form">
+
+        <!-- Step 1: Account -->
+        <div class="flex flex-col gap-4">
+            {{ step_dot(1, "Create your admin account") }}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="username"
+                        class="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+                        Username
+                    </label>
+                    <input type="text" id="username" name="username" required autofocus autocomplete="username"
+                        minlength="3" maxlength="64" class="w-full rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm
+                                focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition">
+                </div>
+                <div>
+                    <label for="password"
+                        class="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+                        Password
+                    </label>
+                    <input type="password" id="password" name="password" required autocomplete="new-password"
+                        minlength="8" class="w-full rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm
+                                focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition">
+                    <p class="text-[11px] text-zinc-500 mt-1.5">At least 8 characters.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-zinc-800"></div>
+
+        <!-- Step 2: Exam -->
+        <div class="flex flex-col gap-4">
+            {{ step_dot(2, "Tell us about the exam") }}
+            <div>
+                <label for="exam_name" class="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+                    Exam Name
+                </label>
+                <input type="text" id="exam_name" name="exam_name" required value="{{ values.get('exam_name', '') }}"
+                    placeholder="e.g. GSAT 2027" class="w-full rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm
+                                focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="exam_date_time"
+                        class="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+                        Exam Date &amp; Time
+                    </label>
+                    <input type="datetime-local" id="exam_date_time" name="exam_date_time" required
+                        value="{{ values.get('exam_date_time', '') }}" class="w-full rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm
+                                focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition">
+                </div>
+                <div>
+                    <label for="schedule_time"
+                        class="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+                        Daily Post Time (HH:MM)
+                    </label>
+                    <input type="time" id="schedule_time" name="schedule_time" required
+                        value="{{ values.get('schedule_time', '07:00') }}" class="w-full rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm
+                               focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition">
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-zinc-800"></div>
+
+        <!-- Step 3: Notifications -->
+        <div class="flex flex-col gap-4">
+            {{ step_dot(3, "Failure notifications") }}
+            <div class="flex items-start gap-3 bg-zinc-950 rounded-md border border-zinc-800 p-3">
+                <i class="fa-solid fa-bell text-sky-400 text-base mt-0.5"></i>
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-semibold text-zinc-100">Push me when a scheduled job fails</div>
+                    <div class="text-[11px] text-zinc-500 mt-0.5 leading-relaxed">
+                        Uses <a href="https://ntfy.sh/" target="_blank" rel="noopener"
+                            class="text-sky-400 hover:underline">ntfy.sh</a>. A random topic is generated for you; you
+                        can change it later in Config.
+                    </div>
+                </div>
+                <label class="relative inline-flex items-center shrink-0 cursor-pointer">
+                    <input type="checkbox" name="ntfy_enabled" value="true" class="sr-only peer" checked>
+                    <div class="w-9 h-5 bg-zinc-700 rounded-full peer-checked:bg-sky-500/60
+                                after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                                after:bg-white after:rounded-full after:h-4 after:w-4 after:transition
+                                peer-checked:after:translate-x-4"></div>
+                </label>
+            </div>
+        </div>
+
+        <div class="border-t border-zinc-800"></div>
+
+        <div class="flex items-center justify-between gap-3">
+            <p class="text-[11px] text-zinc-500">
+                You can configure Instagram, Facebook, Discord and image templates after finishing setup.
+            </p>
+            <button type="submit" class="px-4 py-2 rounded-md bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/30
+                       hover:bg-sky-500/20 text-sm font-medium transition shrink-0">
+                Finish setup <i class="fa-solid fa-arrow-right text-xs ml-1"></i>
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}

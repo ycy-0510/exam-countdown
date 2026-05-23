@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_log_entry.html" import log_entry %}
+{% block title %}Logs | Exam Countdown{% endblock %}
+
+{% block content %}
+<div class="mb-5">
+    <h1 class="text-xl font-semibold text-sky-400 tracking-tight">Run Logs</h1>
+    <p class="text-sm text-zinc-400 mt-0.5">Latest 50 job executions.</p>
+</div>
+
+{% if not logs %}
+<div class="bg-zinc-900 rounded-lg border border-zinc-800 p-12 text-center">
+    <p class="text-sm text-zinc-400">No logs yet. Run a job from the Test page.</p>
+</div>
+{% else %}
+<div class="bg-zinc-800 rounded-lg border border-zinc-800 overflow-hidden">
+    <div class="overflow-x-auto">
+        <div class="space-y-2">
+            {% for log in logs %}
+            {{ log_entry(log, available_images) }}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

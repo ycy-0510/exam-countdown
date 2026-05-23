@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% block title %}Configuration | Exam Countdown{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-xl font-semibold text-sky-400 tracking-tight">Configuration</h1>
+    <p class="text-sm text-zinc-400 mt-0.5">Click edit to change a value. Toggle platforms below to enable posting.</p>
+</div>
+
+<!-- Inline edit -->
+<section class="bg-zinc-900 rounded-lg border border-zinc-800 mb-6 divide-y divide-zinc-800">
+    {% for key, label, type in general_fields %}
+    <div class="px-5 py-4 flex items-center gap-4" data-field-row data-key="{{ key }}">
+        <div class="flex-1 min-w-0">
+            <div class="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">{{ label }}</div>
+
+            <!-- View mode -->
+            <div class="text-sm text-zinc-100 font-mono" data-view>
+                {% set v = values.get(key, '') %}
+                {% if v %}{{ v.replace('T', ' ') }}{% else %}<span class="text-zinc-400">—</span>{% endif %}
+            </div>
+
+            <!-- Edit mode -->
+            <div class="flex items-center gap-2" data-edit-view>
+                <input type="{{ type }}" value="{{ values.get(key, '') }}" class="hidden flex-1 min-w-0 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm
+                        focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition"
+                    data-edit>
+                <button type="button"
+                    class="hidden text-xs px-2.5 py-1 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    disabled data-save-btn>Save</button>
+
+                <button type="button"
+                    class="hidden text-xs px-2.5 py-1 rounded-md text-zinc-400 hover:text-zinc-300 transition"
+                    data-cancel-btn>Cancel</button>
+            </div>
+        </div>
+
+        <button type="button"
+            class="text-xs px-2.5 py-1 rounded-md bg-zinc-100/5 text-zinc-300 ring-1 ring-zinc-100/10 hover:bg-zinc-100/10 transition"
+            data-edit-btn>Edit</button>
+    </div>
+    {% endfor %}
+</section>
+
+<!-- card-template -->
+<section class="bg-zinc-900 rounded-lg border border-zinc-800 p-4 flex items-center gap-3
+                hover:border-zinc-700 cursor-pointer transition mb-6" id="template-card">
+    <i class="fa-solid fa-image text-lg text-zinc-300"></i>
+    <div class="flex-1 min-w-0">
+        <div class="text-sm font-semibold text-zinc-100">Image Template</div>
+        <div class="text-xs text-zinc-400 mt-0.5">Background used for the countdown image</div>
+    </div>
+    <i class="fa-solid fa-chevron-right text-xs text-zinc-500"></i>
+</section>
+
+<!-- card-platform -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+    {% for p in platforms %}
+    <div class="bg-zinc-900 rounded-lg border border-zinc-800 p-4 flex items-center gap-3
+                hover:border-zinc-700 cursor-pointer transition" data-platform-card data-platform="{{ p.key }}">
+        <i class="fa-brands fa-{{ p.key }} text-lg text-zinc-300"></i>
+        <div class="flex-1 min-w-0">
+            <div class="text-sm font-semibold text-zinc-100">{{ p.name }}</div>
+            <div class="text-xs text-zinc-400 mt-0.5">
+                {% if p.configured %}Configured{% else %}Not configured{% endif %}
+            </div>
+        </div>
+
+        <!-- Toggle switch -->
+        <label
+            class="relative inline-flex items-center shrink-0 {% if p.configured %}cursor-pointer{% else %}cursor-not-allowed opacity-40{% endif %}"
+            onclick="event.stopPropagation()" {% if not p.configured %}title="Configure credentials first" {% endif %}>
+            <input type="checkbox" class="sr-only peer" data-platform-toggle data-platform="{{ p.key }}" {% if p.enabled
+                %}checked{% endif %} {% if not p.configured %}disabled{% endif %}>
+            <div class="w-9 h-5 bg-zinc-700 rounded-full peer-checked:bg-sky-500/60
+                        after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                        after:bg-white after:rounded-full after:h-4 after:w-4 after:transition
+                        peer-checked:after:translate-x-4"></div>
+        </label>
+    </div>
+    {% endfor %}
+</section>
+
+<!-- card-ntfy -->
+<section class="bg-zinc-900 rounded-lg border border-zinc-800 p-4 flex items-center gap-3
+                hover:border-zinc-700 cursor-pointer transition mb-6" id="ntfy-card">
+    <i class="fa-solid fa-bell text-lg text-zinc-300"></i>
+    <div class="flex-1 min-w-0">
+        <div class="text-sm font-semibold text-zinc-100">Error Notifications</div>
+        <div class="text-xs text-zinc-400 mt-0.5">ntfy push when the scheduled job fails</div>
+    </div>
+    <label class="relative inline-flex items-center shrink-0 cursor-pointer"
+        onclick="event.stopPropagation()">
+        <input type="checkbox" class="sr-only peer" id="ntfy-toggle" {% if ntfy.enabled %}checked{% endif %}>
+        <div class="w-9 h-5 bg-zinc-700 rounded-full peer-checked:bg-sky-500/60
+                    after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                    after:bg-white after:rounded-full after:h-4 after:w-4 after:transition
+                    peer-checked:after:translate-x-4"></div>
+    </label>
+</section>
+
+<!-- platform modal -->
+<dialog id="platform-modal"
+    class="bg-zinc-900 text-zinc-200 rounded-lg border border-zinc-800 p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm w-full max-w-md m-auto inset-0 ">
+    <div class="p-5 border-b border-zinc-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <i class="fa-brands text-lg text-sky-400" data-modal-icon></i>
+            <h2 class="text-sm font-semibold text-sky-400" data-modal-title>—</h2>
+        </div>
+        <button type="button" class="text-zinc-400 hover:text-zinc-200" data-modal-close><i
+                class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-5 space-y-4" data-modal-fields></div>
+    <div class="px-5 pb-5 text-xs hidden" data-modal-result></div>
+    <div class="p-5 border-t border-zinc-800 flex items-center justify-between gap-3">
+        <button type="button"
+            class="text-xs px-2.5 py-1.5 rounded-md bg-zinc-100/5 text-zinc-300 ring-1 ring-zinc-100/10 hover:bg-zinc-100/10 transition"
+            data-modal-test>Test</button>
+        <div class="flex items-center gap-2">
+            <button type="button" class="text-xs px-2.5 py-1.5 rounded-md text-zinc-400 hover:text-zinc-300"
+                data-modal-close>Cancel</button>
+            <button type="button"
+                class="text-xs px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 transition disabled:opacity-40 disabled:hover:bg-sky-500/10 disabled:cursor-not-allowed"
+                disabled data-modal-save>Save</button>
+        </div>
+    </div>
+</dialog>
+
+<!-- template modal -->
+<dialog id="template-modal"
+    class="bg-zinc-900 text-zinc-200 rounded-lg border border-zinc-800 p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm w-full max-w-lg m-auto inset-0">
+    <div class="p-5 border-b border-zinc-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-image text-lg text-sky-400"></i>
+            <h2 class="text-sm font-semibold text-sky-400">Image Template</h2>
+        </div>
+        <button type="button" class="text-zinc-400 hover:text-zinc-200" data-template-close>
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="p-5 space-y-5">
+        <!-- Preview block -->
+        <div>
+            <div class="flex items-center justify-between mb-2">
+                <div class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Current template</div>
+                <a href="/config/template/preview?{{ now }}" download="template-preview.jpg"
+                    class="text-xs px-2.5 py-1 rounded-md bg-zinc-100/5 text-zinc-300 ring-1 ring-zinc-100/10 hover:bg-zinc-100/10 transition inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i> Preview with text
+                </a>
+            </div>
+            <div class="bg-zinc-950 rounded-md border border-zinc-800 p-2 flex items-center justify-center">
+                <img id="template-current-img" src="/config/template/current?{{ now }}" alt="current template"
+                    class="max-h-64 rounded"
+                    onerror="this.outerHTML='<span class=\'text-xs text-zinc-500 italic py-8\'>No template uploaded yet</span>'" />
+            </div>
+            <p class="text-[11px] text-zinc-500 mt-2 leading-relaxed">
+                Download the preview to see where the countdown number and date will be drawn over your image.
+            </p>
+        </div>
+
+        <!-- Color palette -->
+        <div class="border-t border-zinc-800 pt-5">
+            <div class="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Color palette</div>
+            <p class="text-[11px] text-zinc-500 mb-3 leading-relaxed">
+                Use these colors when designing your template so it matches the rendered text.
+            </p>
+            <div class="flex flex-wrap gap-2">
+                {% for c in palette %}
+                <button type="button" data-copy-color="{{ c.hex }}" title="{{ c.desc }}"
+                    class="inline-flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-lg bg-zinc-950 border border-zinc-800 hover:border-zinc-700 transition group">
+                    <span class="w-4 h-4 rounded-full shrink-0 border border-zinc-700"
+                        style="background:{{ c.hex }}"></span>
+                    <span class="text-[11px] text-zinc-300 font-mono">{{ c.hex }}</span>
+                    <i class="fa-regular fa-copy text-[10px] text-zinc-500 group-hover:text-zinc-300"></i>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Upload block -->
+        <div class="border-t border-zinc-800 pt-5">
+            <div class="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Upload new template</div>
+            <input type="file" id="template-file" accept="image/png,image/jpeg" class="block w-full text-xs text-zinc-300
+                       file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0
+                       file:text-xs file:font-medium
+                       file:bg-zinc-100/5 file:text-zinc-300 file:ring-1 file:ring-zinc-100/10
+                       hover:file:bg-zinc-100/10 file:transition file:cursor-pointer" />
+            <p class="text-[11px] text-zinc-500 mt-2">PNG or JPEG. Recommended 1080 × 1350.</p>
+        </div>
+
+        <div class="text-xs hidden" id="template-result"></div>
+    </div>
+
+    <div class="p-5 border-t border-zinc-800 flex items-center justify-end gap-2">
+        <button type="button" class="text-xs px-2.5 py-1.5 rounded-md text-zinc-400 hover:text-zinc-300"
+            data-template-close>Cancel</button>
+        <button type="button" id="template-upload-btn" disabled
+            class="text-xs px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 transition disabled:opacity-40 disabled:hover:bg-sky-500/10 disabled:cursor-not-allowed">
+            Upload
+        </button>
+    </div>
+</dialog>
+
+<!-- ntfy modal -->
+<dialog id="ntfy-modal"
+    class="bg-zinc-900 text-zinc-200 rounded-lg border border-zinc-800 p-0 backdrop:bg-black/40 backdrop:backdrop-blur-sm w-full max-w-md m-auto inset-0">
+    <div class="p-5 border-b border-zinc-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-bell text-lg text-sky-400"></i>
+            <h2 class="text-sm font-semibold text-sky-400">Error Notifications (ntfy)</h2>
+        </div>
+        <button type="button" class="text-zinc-400 hover:text-zinc-200" data-ntfy-close>
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="p-5 space-y-4">
+        <p class="text-xs text-zinc-400 leading-relaxed">
+            Receive a push notification when the scheduled job fails. Install the
+            <a href="https://ntfy.sh/" target="_blank" rel="noopener" class="text-sky-400 hover:underline">ntfy app</a>
+            and subscribe to your topic. Anyone with the topic name can send & receive — keep it secret.
+        </p>
+
+        <div>
+            <label class="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1.5">Topic</label>
+            <div class="flex items-center gap-2">
+                <input type="text" id="ntfy-topic-input" value="{{ ntfy.topic }}"
+                    class="block w-full rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 px-3 py-1.5 text-sm font-mono
+                            focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition" />
+                <button type="button" id="ntfy-regenerate-btn" title="Generate random topic"
+                    class="text-xs px-2.5 py-1.5 rounded-md bg-zinc-100/5 text-zinc-300 ring-1 ring-zinc-100/10 hover:bg-zinc-100/10 transition shrink-0">
+                    <i class="fa-solid fa-dice"></i>
+                </button>
+            </div>
+            <p class="text-[11px] text-zinc-500 mt-1.5">
+                Subscribe URL:
+                <a href="{{ ntfy.server }}/{{ ntfy.topic }}" target="_blank" rel="noopener"
+                    class="font-mono text-zinc-400 hover:text-sky-400" id="ntfy-subscribe-url">{{ ntfy.server }}/{{ ntfy.topic }}</a>
+            </p>
+        </div>
+
+        <div class="text-xs hidden" id="ntfy-result"></div>
+    </div>
+
+    <div class="p-5 border-t border-zinc-800 flex items-center justify-between gap-3">
+        <button type="button" id="ntfy-test-btn"
+            class="text-xs px-2.5 py-1.5 rounded-md bg-zinc-100/5 text-zinc-300 ring-1 ring-zinc-100/10 hover:bg-zinc-100/10 transition">
+            Test
+        </button>
+        <div class="flex items-center gap-2">
+            <button type="button" data-ntfy-close class="text-xs px-2.5 py-1.5 rounded-md text-zinc-400 hover:text-zinc-300">Cancel</button>
+            <button type="button" id="ntfy-save-btn" disabled
+                class="text-xs px-3 py-1.5 rounded-md bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20 hover:bg-sky-500/15 transition disabled:opacity-40 disabled:hover:bg-sky-500/10 disabled:cursor-not-allowed">
+                Save
+            </button>
+        </div>
+    </div>
+</dialog>
+
+<script id="ntfy-server-data" type="application/json">{{ ntfy.server|tojson }}</script>
+
+<script id="platform-fields-data" type="application/json">
+{
+{% for p in platforms %}
+"{{ p.key }}": {
+    "name": "{{ p.name }}",
+    "fields": [{% for fk, fl, ft in p.fields %}{"key": "{{ fk }}", "label": "{{ fl }}", "type": "{{ ft }}"}{% if not loop.last %},{% endif %}{% endfor %}],
+    "values": {
+        {% for fk, fl, ft in p.fields %}"{{ fk }}":{% if ft == "password" %}""{% else %} {{ (values.get(fk) or '')|tojson }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}
+    }
+}{% if not loop.last %},{% endif %}
+{% endfor %}
+}
+</script>
+
+<script src="/static/config.js?{{ now }}"></script>
+{% endblock %}
